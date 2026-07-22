@@ -1,0 +1,20 @@
+{
+  "kind": "webpage_snapshot",
+  "url": "https://martinfowler.com/articles/2020-07-predictable-sequences-adr.html",
+  "final_url": "https://martinfowler.com/articles/2020-07-predictable-sequences-adr.html",
+  "status": 404,
+  "read_status": "http_error",
+  "content_type": "text/html",
+  "fetched_at": "2026-07-22T17:18:14.150844900+00:00",
+  "title": "not found",
+  "description": "",
+  "site_name": null,
+  "published_at": null,
+  "source_type": "unknown",
+  "text": "",
+  "quote_candidates": [],
+  "word_count": 0,
+  "truncated": false,
+  "blocked": false,
+  "source": "direct_http"
+}

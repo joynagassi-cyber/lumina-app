@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumina — Rapport (Spotify Style)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #121212; color: #FFF; min-height: 100vh; }
+  .app-layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 80px; background: #000; display: flex; flex-direction: column; align-items: center; padding: 24px 0; gap: 20px; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; }
+  .sidebar-logo { width: 40px; height: 40px; background: #FF6B00; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #000; cursor: pointer; }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 20px; margin-top: 12px; }
+  .sidebar-link { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 150ms; color: #B3B3B3; text-decoration: none; }
+  .sidebar-link:hover { color: #FFF; } .sidebar-link.active { color: #FF6B00; }
+  .sidebar-link svg { width: 20px; height: 20px; }
+  .sidebar-spacer { flex: 1; } .sidebar-avatar { width: 32px; height: 32px; border-radius: 50%; background: #282828; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; cursor: pointer; color: #B3B3B3; }
+
+  .main { flex: 1; margin-left: 80px; }
+  .topbar { position: sticky; top: 0; background: rgba(18,18,18,0.95); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; z-index: 50; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .back-btn { width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; color: #B3B3B3; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .back-btn:hover { color: #FFF; } .back-btn svg { width: 16px; height: 16px; }
+  .topbar-title { font-size: 14px; font-weight: 700; }
+  .content { padding: 32px; max-width: 900px; }
+
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .page-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  .period-selector { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 100px; background: #181818; border: 1px solid #282828; color: #B3B3B3; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 150ms; }
+  .period-selector:hover { border-color: #FF6B00; color: #FF6B00; }
+
+  /* Hero Solde */
+  .hero-card { background: #181818; border-radius: 8px; padding: 36px; margin-bottom: 24px; border: 1px solid #282828; text-align: center; }
+  .hero-label { font-size: 12px; font-weight: 600; color: #808080; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 12px; }
+  .hero-value { font-size: 60px; font-weight: 800; color: #FF6B00; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+  .hero-sub { font-size: 14px; color: #B3B3B3; }
+  .hero-sub span { color: #1DB954; font-weight: 700; }
+
+  /* Stats 3 colonnes */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+  .stat-cell { background: #181818; border-radius: 8px; padding: 24px; border: 1px solid #282828; }
+  .stat-cell-label { font-size: 11px; font-weight: 600; color: #808080; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .stat-cell-value { font-size: 24px; font-weight: 800; letter-spacing: -0.3px; }
+
+  /* Chart bar horizontale */
+  .chart-card { background: #181818; border-radius: 8px; padding: 24px; border: 1px solid #282828; margin-bottom: 24px; }
+  .chart-title { font-size: 16px; font-weight: 700; margin-bottom: 24px; }
+  .chart-bars { display: flex; gap: 16px; align-items: flex-end; height: 120px; margin-bottom: 12px; }
+  .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .chart-bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 400ms ease; }
+  .chart-bar.income { background: #1DB954; }
+  .chart-bar.expense { background: #E51332; }
+  .chart-label { font-size: 10px; font-weight: 600; color: #808080; }
+
+  /* Legend simple */
+  .chart-legend { display: flex; gap: 20px; margin-bottom: 24px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #B3B3B3; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-dot.green { background: #1DB954; }
+  .legend-dot.red { background: #E51332; }
+
+  /* Category list */
+  .cat-list { background: #181818; border-radius: 8px; border: 1px solid #282828; overflow: hidden; margin-bottom: 24px; }
+  .cat-header { padding: 18px 24px; border-bottom: 1px solid #282828; font-size: 16px; font-weight: 700; }
+  .cat-item { display: flex; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .cat-item:last-child { border-bottom: none; }
+  .cat-bar-bg { flex: 1; height: 6px; background: #282828; border-radius: 3px; overflow: hidden; }
+  .cat-bar-fill { height: 100%; border-radius: 3px; }
+  .cat-bar-fill.fire { background: #FF6B00; }
+  .cat-bar-fill.green { background: #1DB954; }
+  .cat-bar-fill.red { background: #E51332; }
+  .cat-info { flex: 1; }
+  .cat-name { font-size: 14px; font-weight: 500; }
+  .cat-pct { font-size: 11px; color: #808080; margin-top: 2px; }
+  .cat-amt { font-size: 14px; font-weight: 700; color: #E51332; text-align: right; min-width: 100px; }
+
+  /* Export */
+  .export-area { background: #181818; border-radius: 8px; padding: 32px; text-align: center; border: 1px solid #282828; }
+  .export-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .export-desc { font-size: 13px; color: #808080; margin-bottom: 20px; }
+  .export-btns { display: flex; gap: 12px; justify-content: center; }
+  .btn-fire { padding: 12px 32px; background: #FF6B00; color: #000; border: none; border-radius: 100px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 150ms; }
+  .btn-fire:hover { background: #FF8533; }
+  .btn-outline { padding: 12px 32px; background: transparent; color: #B3B3B3; border: 1px solid #808080; border-radius: 100px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 150ms; }
+  .btn-outline:hover { border-color: #FF6B00; color: #FF6B00; }
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">L</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8.5V20a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1v-8.5L12 3z"/></svg></a>
+      <a class="sidebar-link active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></a>
+      <a class="sidebar-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></a>
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-avatar">JP</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="back-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <span class="topbar-title">Rapport Financier</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-header">
+        <h1 class="page-title">Bilan Juillet 2026</h1>
+        <div class="period-selector">Juillet ▾</div>
+      </div>
+
+      <!-- Hero -->
+      <div class="hero-card">
+        <div class="hero-label">Résultat Net</div>
+        <div class="hero-value">+2 510 000 F</div>
+        <div class="hero-sub">Excédent de <span>+51.9%</span> vs dépenses</div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-cell">
+          <div class="stat-cell-label">Recettes</div>
+          <div class="stat-cell-value" style="color:#1DB954;">4 850 000 F</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell-label">Dépenses</div>
+          <div class="stat-cell-value" style="color:#E51332;">2 340 000 F</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell-label">Taux épargne</div>
+          <div class="stat-cell-value" style="color:#FF6B00;">51.9%</div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-card">
+        <div class="chart-title">Activité Hebdomadaire</div>
+        <div class="chart-bars">
+          <div class="chart-col"><div class="chart-bar income" style="height:70%;"></div><span class="chart-label">Lun</span></div>
+          <div class="chart-col"><div class="chart-bar expense" style="height:45%;"></div><span class="chart-label">Mar</span></div>
+          <div class="chart-col"><div class="chart-bar income" style="height:85%;"></div><span class="chart-label">Mer</span></div>
+          <div class="chart-col"><div class="chart-bar expense" style="height:55%;"></div><span class="chart-label">Jeu</span></div>
+          <div class="chart-col"><div class="chart-bar income" style="height:60%;"></div><span class="chart-label">Ven</span></div>
+          <div class="chart-col"><div class="chart-bar expense" style="height:80%;"></div><span class="chart-label">Sam</span></div>
+          <div class="chart-col"><div class="chart-bar income" style="height:95%;"></div><span class="chart-label">Dim</span></div>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot green"></div>Recettes</div>
+          <div class="legend-item"><div class="legend-dot red"></div>Dépenses</div>
+        </div>
+      </div>
+
+      <!-- Catégories -->
+      <div class="cat-list">
+        <div class="cat-header">Répartition des Dépenses</div>
+        <div class="cat-item">
+          <div class="cat-info"><div class="cat-name">Salaires</div><div class="cat-pct">45% du total</div></div>
+          <div class="cat-bar-bg"><div class="cat-bar-fill fire" style="width:45%;"></div></div>
+          <div class="cat-amt">1 053 000 F</div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-info"><div class="cat-name">Factures & Charges</div><div class="cat-pct">20% du total</div></div>
+          <div class="cat-bar-bg"><div class="cat-bar-fill green" style="width:20%;"></div></div>
+          <div class="cat-amt">468 000 F</div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-info"><div class="cat-name">Projets</div><div class="cat-pct">15% du total</div></div>
+          <div class="cat-bar-bg"><div class="cat-bar-fill fire" style="width:15%;"></div></div>
+          <div class="cat-amt">351 000 F</div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-info"><div class="cat-name">Événements</div><div class="cat-pct">10% du total</div></div>
+          <div class="cat-bar-bg"><div class="cat-bar-fill red" style="width:10%;"></div></div>
+          <div class="cat-amt">234 000 F</div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-info"><div class="cat-name">Autres</div><div class="cat-pct">10% du total</div></div>
+          <div class="cat-bar-bg"><div class="cat-bar-fill fire" style="width:10%;"></div></div>
+          <div class="cat-amt">234 000 F</div>
+        </div>
+      </div>
+
+      <!-- Export -->
+      <div class="export-area">
+        <div class="export-title">Exporter le rapport</div>
+        <div class="export-desc">PDF pour impression • CSV pour analyse</div>
+        <div class="export-btns">
+          <button class="btn-fire">PDF</button>
+          <button class="btn-outline">CSV</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

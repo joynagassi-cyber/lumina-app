@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumina — Grand Livre (Spotify Style)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #121212;
+    color: #FFFFFF;
+    min-height: 100vh;
+  }
+
+  .app-layout { display: flex; min-height: 100vh; }
+
+  .sidebar { width: 80px; background: #000; display: flex; flex-direction: column; align-items: center; padding: 24px 0; gap: 20px; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; }
+  .sidebar-logo { width: 40px; height: 40px; background: #FF6B00; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #000; cursor: pointer; }
+  .sidebar-nav { display: flex; flex-direction: column; gap: 20px; margin-top: 12px; }
+  .sidebar-link { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 150ms; color: #B3B3B3; text-decoration: none; }
+  .sidebar-link:hover { color: #FFF; }
+  .sidebar-link.active { color: #FF6B00; }
+  .sidebar-link svg { width: 20px; height: 20px; }
+  .sidebar-spacer { flex: 1; }
+  .sidebar-avatar { width: 32px; height: 32px; border-radius: 50%; background: #282828; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; cursor: pointer; color: #B3B3B3; }
+
+  .main { flex: 1; margin-left: 80px; }
+
+  .topbar { position: sticky; top: 0; background: rgba(18,18,18,0.95); backdrop-filter: blur(8px); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; z-index: 50; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .back-btn { width: 32px; height: 32px; border-radius: 50%; background: transparent; border: none; color: #B3B3B3; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 150ms; }
+  .back-btn:hover { color: #FFF; }
+  .back-btn svg { width: 16px; height: 16px; }
+  .topbar-title { font-size: 14px; font-weight: 700; }
+  .topbar-right { display: flex; gap: 8px; }
+  .topbar-action { padding: 8px 16px; border-radius: 100px; background: transparent; border: 1px solid #808080; color: #B3B3B3; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 150ms; text-transform: uppercase; letter-spacing: 0.5px; }
+  .topbar-action:hover { border-color: #FF6B00; color: #FF6B00; }
+
+  .content { padding: 32px; max-width: 900px; }
+
+  /* Search (comme barre de recherche Spotify) */
+  .search-bar {
+    background: #282828; border-radius: 100px; padding: 10px 20px;
+    display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
+    border: 1px solid transparent; transition: border-color 200ms;
+  }
+  .search-bar:focus-within { border-color: #FF6B00; }
+  .search-bar svg { width: 16px; height: 16px; color: #808080; flex-shrink: 0; }
+  .search-bar input { flex: 1; border: none; background: transparent; font-size: 14px; font-family: inherit; color: #FFF; outline: none; }
+  .search-bar input::placeholder { color: #808080; }
+
+  /* Summary row (3 cartes simples) */
+  .summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+  .summary-card { background: #181818; border-radius: 8px; padding: 20px; border: 1px solid #282828; }
+  .summary-label { font-size: 11px; font-weight: 600; color: #808080; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .summary-value { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+  .summary-value.green { color: #1DB954; }
+  .summary-value.red { color: #E51332; }
+  .summary-value.orange { color: #FF6B00; }
+  .summary-detail { font-size: 11px; color: #808080; margin-top: 4px; }
+
+  /* Filter pills */
+  .filter-pills { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .filter-pill {
+    padding: 8px 18px; border-radius: 100px; background: #181818;
+    border: 1px solid #282828; color: #B3B3B3; font-size: 12px;
+    font-weight: 600; cursor: pointer; transition: all 150ms;
+  }
+  .filter-pill:hover { border-color: #B3B3B3; color: #FFF; }
+  .filter-pill.active { background: #FF6B00; color: #000; border-color: #FF6B00; }
+
+  /* Section label */
+  .section-label { font-size: 14px; font-weight: 700; color: #FFF; margin-bottom: 16px; letter-spacing: 0.2px; }
+
+  /* Date header */
+  .date-header { font-size: 11px; font-weight: 700; color: #808080; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
+
+  /* Transaction rows (style liste Spotify) */
+  .tx-list { margin-bottom: 32px; }
+  .tx-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    cursor: pointer;
+    transition: background 100ms;
+  }
+  .tx-row:hover { background: rgba(255,255,255,0.03); margin: 0 -24px; padding: 12px 24px; }
+
+  .tx-num { font-size: 14px; color: #808080; width: 24px; text-align: right; }
+  .tx-row:hover .tx-num { color: #FF6B00; }
+
+  .tx-icon {
+    width: 40px; height: 40px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .tx-icon svg { width: 16px; height: 16px; }
+  .tx-icon.income { background: #1DB954; color: #000; }
+  .tx-icon.expense { background: #E51332; color: #FFF; }
+  .tx-icon.pending { background: #FFB800; color: #000; }
+
+  .tx-info { flex: 1; min-width: 0; }
+  .tx-name { font-size: 14px; font-weight: 500; color: #FFF; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-detail { font-size: 12px; color: #808080; margin-top: 2px; }
+  .tx-amount-col { text-align: right; flex-shrink: 0; }
+  .tx-amount { font-size: 14px; font-weight: 700; }
+  .tx-amount.positive { color: #1DB954; }
+  .tx-amount.negative { color: #E51332; }
+  .tx-amount.pending { color: #FFB800; }
+  .tx-time { font-size: 11px; color: #808080; text-align: right; margin-top: 2px; }
+
+  /* Immutable indicator — discret */
+  .immutable-icon {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 10px; color: #808080; margin-left: 8px;
+  }
+  .immutable-icon svg { width: 12px; height: 12px; }
+
+  /* Summary footer */
+  .footer-note {
+    padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.05);
+    margin-top: 20px; display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: #808080;
+  }
+  .footer-note svg { width: 14px; height: 14px; color: #FF6B00; flex-shrink: 0; }
+
+  /* FAB */
+  .fab {
+    position: fixed; bottom: 28px; right: 28px;
+    width: 56px; height: 56px; background: #FF6B00;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 24px rgba(255,107,0,0.3);
+    cursor: pointer; transition: all 150ms; z-index: 50;
+  }
+  .fab:hover { transform: scale(1.06); box-shadow: 0 12px 32px rgba(255,107,0,0.45); }
+  .fab svg { width: 24px; height: 24px; color: #000; }
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">L</div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="#">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8.5V20a1 1 0 01-1 1h-5v-6h-6v6H4a1 1 0 01-1-1v-8.5L12 3z"/></svg>
+      </a>
+      <a class="sidebar-link active" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </a>
+      <a class="sidebar-link" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      </a>
+      <a class="sidebar-link" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg>
+      </a>
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-avatar">JP</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="back-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="topbar-title">Grand Livre</span>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-action">Exporter</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Search -->
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Rechercher dans les transactions...">
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="summary-label">Recettes</div>
+          <div class="summary-value green">4 850 000 F</div>
+          <div class="summary-detail">24 transactions</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Dépenses</div>
+          <div class="summary-value red">2 340 000 F</div>
+          <div class="summary-detail">18 transactions</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Solde</div>
+          <div class="summary-value orange">+2 510 000 F</div>
+          <div class="summary-detail">Excédentaire</div>
+        </div>
+      </div>
+
+      <!-- Filtres -->
+      <div class="filter-pills">
+        <span class="filter-pill active">Toutes</span>
+        <span class="filter-pill">Dîmes</span>
+        <span class="filter-pill">Offrandes</span>
+        <span class="filter-pill">Dépenses</span>
+        <span class="filter-pill">En attente</span>
+        <span class="filter-pill">Dons</span>
+      </div>
+
+      <div class="section-label">Transactions</div>
+
+      <div class="tx-list">
+        <div class="date-header">Aujourd'hui — 22 Juillet 2026</div>
+
+        <div class="tx-row">
+          <span class="tx-num">1</span>
+          <div class="tx-icon income">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+          </div>
+          <div class="tx-info">
+            <div class="tx-name">Dîme — Groupe Anoungui <span class="immutable-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span></div>
+            <div class="tx-detail">Recette • Dîme</div>
+          </div>
+          <div class="tx-amount-col">
+            <div class="tx-amount positive">+850 000 F</div>
+            <div class="tx-time">09:32</div>
+          </div>
+        </div>
+
+        <div class="tx-row">
+          <span class="tx-num">2</span>
+          <div class="tx-icon expense">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+          </div>
+          <div class="tx-info">
+            <div class="tx-name">Fournitures pastorales</div>
+            <div class="tx-detail">Dépense • Supplies</div>
+          </div>
+          <div class="tx-amount-col">
+            <div class="tx-amount negative">-125 000 F</div>
+            <div class="tx-time">14:18</div>
+          </div>
+        </div>
+
+        <div class="date-header">Hier — 21 Juillet 2026</div>
+
+        <div class="tx-row">
+          <span class="tx-num">3</span>
+          <div class="tx-icon income">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+          </div>
+          <div class="tx-info">
+            <div class="tx-name">Offrande — Culte Dimanche <span class="immutable-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span></div>
+            <div class="tx-detail">Recette • Offrande</div>
+          </div>
+          <div class="tx-amount-col">
+            <div class="tx-amount positive">+1 240 000 F</div>
+            <div class="tx-time">11:45</div>
+          </div>
+        </div>
+
+        <div class="tx-row">
+          <span class="tx-num">4</span>
+          <div class="tx-icon pending">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="tx-info">
+            <div class="tx-name">Rénovation salle</div>
+            <div class="tx-detail">En attente d'approbation</div>
+          </div>
+          <div class="tx-amount-col">
+            <div class="tx-amount pending">⏳ 350 000 F</div>
+            <div class="tx-time">En attente</div>
+          </div>
+        </div>
+
+        <div class="tx-row">
+          <span class="tx-num">5</span>
+          <div class="tx-icon expense">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/></svg>
+          </div>
+          <div class="tx-info">
+            <div class="tx-name">Factures électricité <span class="immutable-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span></div>
+            <div class="tx-detail">Dépense • Charges</div>
+          </div>
+          <div class="tx-amount-col">
+            <div class="tx-amount negative">-89 000 F</div>
+            <div class="tx-time">16:30</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        INV-001 : Transaction validée = immuable — aucune modification possible
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="fab">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</div>
+
+</body>
+</html>
