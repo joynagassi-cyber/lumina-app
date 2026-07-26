@@ -1,87 +1,26 @@
 {
   "name": "lumina-app",
   "version": "2.0.0",
-  "main": "expo-router/entry",
+  "private": true,
+  "description": "Lumina - Monorepo structure for IGS-v1 / ITS-v1 safe-boot pipeline",
+  "workspaces": [
+    "src/safe-boot/backend",
+    "src/safe-boot/frontend"
+  ],
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "lint": "eslint src/ --max-warnings 0",
-    "lint:fix": "eslint src/ --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\"",
-    "typecheck": "tsc --noEmit",
-    "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "prepare": "husky install",
-    "doc:check": "find docs/ -name '*.md' | xargs wc -l | grep total",
-    "ci:validate-configs": "ts-node scripts/ci-validate-configs.ts src/"
+    "build": "turbo run build",
+    "dev:backend": "turbo run dev --filter=backend",
+    "dev:frontend": "turbo run dev --filter=frontend",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "architecture:validate": "bun scripts/architecture-validate.mjs",
+    "traceability:verify": "bun scripts/traceability-verify.mjs",
+    "detect-blockers": "bun scripts/detect-blockers.mjs"
   },
-  "dependencies": {
-    "@expo/vector-icons": "^14.0.0",
-    "@insforge/sdk": "latest",
-    "@nozbe/watermelondb": "^0.25.1",
-    "@react-native-community/netinfo": "^11.0.0",
-    "@react-navigation/native": "^6.1.9",
-    "@react-navigation/native-stack": "^6.9.17",
-    "@tanstack/react-query": "^5.62.0",
-    "ajv": "^8.20.0",
-    "ajv-formats": "^3.0.1",
-    "expo": "~52.0.0",
-    "expo-build-properties": "~0.13.1",
-    "expo-camera": "~16.0.0",
-    "expo-constants": "~17.0.0",
-    "expo-file-system": "~18.0.0",
-    "expo-image-picker": "~16.0.0",
-    "expo-linking": "~6.3.0",
-    "expo-localization": "~16.0.0",
-    "expo-router": "~4.0.0",
-    "expo-secure-store": "~14.0.0",
-    "expo-sharing": "~13.0.0",
-    "expo-splash-screen": "~0.29.0",
-    "expo-status-bar": "~2.0.0",
-    "json-diff": "^1.0.6",
-    "lucide-react-native": "^0.378.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-native": "0.76.0",
-    "react-native-gesture-handler": "~2.20.2",
-    "react-native-mmkv": "^3.0.0",
-    "react-native-reanimated": "~3.16.0",
-    "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.4.0",
-    "react-native-svg": "^15.8.0"
-  },
-  "devDependencies": {
-    "@testing-library/jest-native": "^5.4.3",
-    "@testing-library/react-native": "^12.7.0",
-    "@types/jest": "^29.5.14",
-    "@types/json-schema": "^7.0.15",
-    "@types/react": "~18.3.12",
-    "@typescript-eslint/eslint-plugin": "^8.18.0",
-    "@typescript-eslint/parser": "^8.18.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-react": "^7.34.0",
-    "husky": "^9.0.0",
-    "jest": "^29.7.0",
-    "jest-expo": "~52.0.0",
-    "jsondiffpatch": "^0.6.2",
-    "lint-staged": "^15.0.0",
-    "prettier": "^3.4.2",
-    "ts-jest": "^29.2.5",
-    "typescript": "~5.7.0"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.md": [
-      "wc -l < {} | xargs test {} <= 400 || echo 'WARNING: File exceeds 400 lines'"
-    ]
-  },
-  "private": true
+  "packageManager": "bun@1.1.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "bun": ">=1.1.0"
+  }
 }

@@ -1,13 +1,8 @@
 /**
  * Expo Router — Root Layout
  *
- * Implements ITS-V1 requirements:
- * - i18n provider (i18next)
- * - Redux Toolkit store
- * - React Query for API caching
- * - Dark/light theme via NativeWind v4
- *
- * @traceability PAS-v1 → RTS-v1 → Frontend Implementation
+ * ITS-V1: Defines dark/light color scheme, providers (i18n, Redux),
+ * and navigation container for file-based routing.
  */
 
 import { useEffect } from 'react';
@@ -22,7 +17,6 @@ import { I18nextProvider } from 'react-i18next';
 import store from '@/store';
 import i18n from '@/i18n';
 import { useColorScheme } from 'react-native';
-import { PortalProvider } from '@gorhom/portal';
 
 // React Query client — global API cache per ITS-V1 RTK Query integration
 const queryClient = new QueryClient({
@@ -30,7 +24,7 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 60_000,
       retry: 1,
-      gcTime: 300_000, // 5 minutes
+      gcTime: 300_000,
     },
   },
 });
@@ -49,19 +43,17 @@ export default function RootLayout() {
         <ReduxProvider store={store}>
           <QueryClientProvider client={queryClient}>
             <I18nextProvider i18n={i18n}>
-              <PortalProvider>
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    navigationBarColor: colorScheme === 'dark' ? '#121212' : '#ffffff',
-                  }}
-                >
-                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-                <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-              </PortalProvider>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  navigationBarColor: colorScheme === 'dark' ? '#121212' : '#ffffff',
+                }}
+              >
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
             </I18nextProvider>
           </QueryClientProvider>
         </ReduxProvider>

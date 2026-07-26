@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /**
  * Lumina Global CSS — Design Tokens Root
  *
