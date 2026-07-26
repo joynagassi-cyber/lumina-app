@@ -120,8 +120,6 @@ CREATE TABLE IF NOT EXISTS organizations (
     version         integer NOT NULL DEFAULT 1,
     synced_at       timestamptz,
     local_updated_at timestamptz,
-    CONSTRAINT chk_statut_archived_irreversible
-        CHECK (NOT (statut = 'archived' AND LAG(statut) OVER (ORDER BY updated_at) = 'active'))
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_organizations_nom ON organizations(nom);
@@ -1061,9 +1059,6 @@ CREATE INDEX IF NOT EXISTS idx_report_snapshots_definition_id ON report_snapshot
 CREATE SEQUENCE IF NOT EXISTS seq_audit_log_sequence
     START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE;
 
-ALTER TABLE audit_entries 
-    ALTER COLUMN sequence_log SET DEFAULT nextval('seq_audit_log_sequence');
-
 CREATE TABLE IF NOT EXISTS audit_entries (
     id                       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     org_id                   uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
@@ -1455,11 +1450,38 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- ============================================================
+-- TRR-v1.2 OBS-2 remediation: archived irreversibility enforcement
+-- Replaces invalid LAG() OVER () CHECK with a proper BEFORE UPDATE trigger.
+-- Source constraint fix: CONSTRAINTS-INDEX-SPECIFICATION-v1.md §4 line 207
+-- ============================================================
+CREATE OR REPLACE FUNCTION enforce_org_archived_irreversible()
+RETURNS trigger AS $$
+BEGIN
+    -- If changing from 'active' to 'archived', ensure last update timestamp exists
+    IF OLD.statut = 'active' AND NEW.statut = 'archived' AND OLD.updated_at IS NULL THEN
+        RAISE EXCEPTION 'Cannot archive organization without prior update timestamp';
+    END IF;
+    -- If already archived, never allow return to any non-archived state
+    IF OLD.statut = 'archived' AND NEW.statut != 'archived' THEN
+        RAISE EXCEPTION 'Organization archived status is irreversible';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER trg_org_statut_archived_irreversible
+    BEFORE UPDATE ON organizations
+    FOR EACH ROW
+    EXECUTE FUNCTION enforce_org_archived_irreversible();
+
 -- ROLLBACK
 -- DROP FUNCTION IF EXISTS update_updated_at_column();
 -- DROP FUNCTION IF EXISTS gen_safe_uuid();
 -- DROP FUNCTION IF EXISTS validate_hex_color(varchar);
 -- DROP FUNCTION IF EXISTS validate_not_future_date(date);
+-- DROP TRIGGER IF EXISTS trg_org_statut_archived_irreversible ON organizations;
+-- DROP FUNCTION IF EXISTS enforce_org_archived_irreversible();
 
 ---
 
@@ -1472,7 +1494,7 @@ $$ LANGUAGE plpgsql;
 | Total migrations | 35 |
 | Total tables created | 32 |
 | Total indexes created | 50+ (M-010 fix: removed 2 duplicate notification indexes) |
-| Total triggers/funcs created | 6 |
+| Total triggers/funcs created | 8 (6 utility + 2 OBS-2 remediation) |
 | Topological order | PRESERVED |
 | Idempotent (IF NOT EXISTS) | YES |
 | Rollback sections present | YES |
@@ -1485,6 +1507,7 @@ $$ LANGUAGE plpgsql;
 | sessions date_expiration CHECK | PRESENT (M-009 fix) |
 | prevent_audit_modify volatility | VOLATILE explicit (M-006 fix) |
 | Notifications index duplicates | REMOVED (M-010 fix) |
+| archived_irreversibility | ENFORCED via trigger (OBS-2 fix) |
 
 ### Source Canonical Cross-Reference
 

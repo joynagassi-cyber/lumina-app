@@ -204,7 +204,7 @@ Ces contraintes traduisent les invariants DOC-015 en règles physiques vérifiab
 | organizations | Type org valide | `CHECK (type_org IN ('church','school','ngo','company','custom'))` | BR-ORG-001 | Organization type enum |
 | organizations | Status valide | `CHECK (statut IN ('active','suspended','archived'))` | CC-ORG-003 | Org status enum |
 | organizations | Accent hex valide | `CHECK (accent_hex ~ '^#[0-9a-fA-F]{6}$')` | CFG-003 | Color hex pattern |
-| organizations | Statut archived irréversible | `ALTER TABLE organizations ADD CONSTRAINT chk_statut_archived_irreversible CHECK (NOT (statut = 'archived' AND LAG(statut) OVER (ORDER BY updated_at) = 'active'))` | CC-ORG-003 | Archived cannot return to active |
+| organizations | Statut archived irréversible | `trigger trg_org_statut_archived_irreversible BEFORE UPDATE ON organizations FOR EACH ROW WHEN (NEW.statut = 'archived' AND OLD.statut = 'active' AND OLD.updated_at IS NOT NULL) EXECUTE PROCEDURE enforce_org_archived_irreversible()` | CC-ORG-003 | Archived cannot return to active — enforced via trigger |
 
 ---
 
