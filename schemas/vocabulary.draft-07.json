@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lumina Vocabulary Definition",
+  "description": "Defines a vocabulary namespace with categorized terms and values.",
+  "type": "object",
+  "required": ["namespace", "terms"],
+  "additionalProperties": false,
+  "properties": {
+    "namespace": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "terms": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_]*$": {
+          "type": "object",
+          "required": ["label", "values"],
+          "additionalProperties": false,
+          "properties": {
+            "label": { "type": "string" },
+            "description": { "type": "string" },
+            "parent": { "type": "string" },
+            "filter": { "type": "string" },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["key", "label"],
+                "additionalProperties": false,
+                "properties": {
+                  "key": { "type": "string" },
+                  "label": { "type": "string" },
+                  "label_en": { "type": "string" },
+                  "color": {
+                    "type": "string",
+                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                  },
+                  "metadata": { "type": "object" },
+                  "deprecated": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

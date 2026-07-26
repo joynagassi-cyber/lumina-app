@@ -17,7 +17,7 @@
 | Traceability-Matrix.md | ✅ Fait | PRD→ADR→Engine→Test |
 | Documentation-Discipline.md | ✅ Fait | Règle PR sans doc = rejet |
 
-### Platform Core (6)
+### Platform Capabilities (6)
 | Doc | Statut | Qualité |
 |---|---|---|
 | index.md (overview) | ✅ Fait | 90 lignes |

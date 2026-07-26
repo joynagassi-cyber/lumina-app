@@ -39,10 +39,10 @@ Le **Module Financier** est la priorité absolue (K1). Il comprend :
 
 ```
 Finance K1 dépend de :
-├── Platform Core (Manifest Engine)
-├── Platform Core (Vocabulary Engine)
-├── Platform Core (Workflow Engine)
-├── Platform Core (Forms Engine)
+├── Platform Capabilities (Manifest Engine)
+├── Platform Capabilities (Vocabulary Engine)
+├── Platform Capabilities (Workflow Engine)
+├── Platform Capabilities (Forms Engine)
 ├── Offline-First (WatermelonDB)
 ├── Multi-Tenant Isolation
 └── Financial Immutability Rule

@@ -1,9 +1,12 @@
 # Architecture Map — Vue d'Ensemble Lumina v2
 
 **Doc ID:** DOC-ARCHITECTURE-MAP  
-**Version:** 2.0  
+**Version:** 2.1  
 **Statut :** VALIDÉ  
 **Dépendances :** PRD_LUMINA_v2.md (Section 2), tous les specs moteurs
+
+> ⚠️ **En cas de désaccord sur le sens des dépendances, `Dependency-Contract.md` fait foi.**  
+> La notation `A ──→ B` signifie "A dépend de B" (= A lit depuis B, A importe B au niveau code).
 
 ---
 
@@ -34,7 +37,7 @@ Lumina v2 est une **plateforme modulaire** où chaque moteur (Manifest, Workflow
           └──────────────────┼──────────────────┘
                              ▼
                     ┌─────────────────────────────┐
-                    │      Platform Core           │
+                    │      Platform Capabilities    │
                     │   (Manifest + Capability)    │
                     └──────────┬──────────────────┘
                                │
@@ -59,11 +62,11 @@ Lumina v2 est une **plateforme modulaire** où chaque moteur (Manifest, Workflow
 
 ```
 Manifest ──→ Tous les autres (c'est le chef d'orchestre)
-Vocabulary ──→ Forms (les labels)
-Vocabulary ──→ Workflow (les enums)
+Forms ──→ Vocabulary (labels, enums)
+Workflow ──→ Vocabulary (enums)
 Forms ──→ Capability (pour afficher/cacher)
 Workflow ──→ Capability (pour déclencher)
-Capability ──→ Manifest (pour être activé)
+Capability ──→ Manifest (lecture configuration — exclu des cycles, voir Dependency-Contract §5)
 ```
 
 ## 4. Flux de Données Principal

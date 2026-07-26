@@ -28,7 +28,7 @@ cette discipline est essentielle.
 
 Une PR modifie-t-elle... | docs à mettre à jour |
 |---|---|
-| Un moteur du Platform Core | Le spec du moteur concerné dans `docs/01-platform-core/*/index.md` |
+| Une capability de la Platform | Le spec du moteur concerné dans `docs/01-platform-core/*/index.md` |
 | Un endpoint API | `docs/05-api-contracts/api-contracts.md` |
 | Une règle métier | `docs/04-business-rules/*.md` |
 | Le schéma de données | `docs/03-configuration/mfejc-manifest-example.md` |

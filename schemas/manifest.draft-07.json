@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lumina Manifest Configuration",
+  "description": "Configuration manifest for Lumina organizations. Defines org identity, settings, feature toggles, roles, and departments.",
+  "type": "object",
+  "required": ["version", "organization", "features", "roles"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "organization": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "minLength": 1 },
+        "type": {
+          "type": "string",
+          "enum": ["church", "school", "ngo", "company", "custom"]
+        },
+        "language": { "type": "string", "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
+        "timezone": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "currency": { "type": "string" },
+        "currency_symbol": { "type": "string" },
+        "fiscal_year_start": { "type": "string", "pattern": "^\\d{2}-\\d{2}$" },
+        "require_approval_for_expense": { "type": "boolean" },
+        "max_auto_approve": { "type": "number", "minimum": 0 },
+        "large_transaction_threshold": { "type": "number", "minimum": 0 }
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "sub_features": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "permissions"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "permissions": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "parent": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+        }
+      }
+    },
+    "departments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "role": { "type": "string" },
+          "children": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "workflow_overrides": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "forms_overrides": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

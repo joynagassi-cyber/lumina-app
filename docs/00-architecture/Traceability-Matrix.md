@@ -60,6 +60,7 @@ Chaque élément a un **ID unique** :
 | Forms Rendering | ADR-007 | TST-Forms | DOC-PLATFORM-FORMS |
 | Workflow Execution | ADR-004 | TST-Workflow | DOC-PLATFORM-WORKFLOW |
 | Financial Immutability | ADR-004 | TST-Finance | INV-001, DOC-BUSINESS-RULES-FINANCE |
+| Draft Concurrency Sync | ADR-016 | TST-Sync | DOC-OFFLINE-FIRST |
 
 ## 5. Utilisation pour Évolution
 

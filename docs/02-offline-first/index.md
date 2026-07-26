@@ -57,9 +57,18 @@ Appliquée aux transactions financières validées.
 |--------|---------------------|--------|
 | Membres | LWT Standard | Données éditoriales, modifications rarement simultanées. |
 | Groupes | LWT Standard | Structure administrative. |
-| Transactions (Draft) | Optimistic Locking (Version ID) | Empêche le trésorier B d'écraser le travail du trésorier A. |
+| Transactions (Draft) | UUID client-side + device_id, dédoublonnage à la sync | Empêche perte de travail utilisateur hors-ligne multi-appareil. INV-001 ne s'applique qu'aux validated. |
 | Transactions (Validated) | Bloquant / Interdit | Sécurité financière absolue. |
 | Reçus (Images) | Multiples OK | Une image est stockée dans le cloud object storage (S3-compatible InsForge), les meta-données se fusionnent par Hash de fichier. |
+
+#### Dédoublonnage des Transactions Draft
+
+Lorsqu'une transaction draft est créée hors-ligne sur deux appareils simultanément :
+1. Chaque appareil génère un `client_tx_id` (UUID v4) + `device_id` unique
+2. Au moment de la sync, le serveur vérifie : `WHERE client_tx_id IS NOT NULL AND org_id = ? AND amount = ? AND type = ? AND date = ? AND category_id = ?`
+3. Si un match trouvé → les deux opérations sont fusionnées (le premier arrivé gagne, `client_tx_id` est conservé pour traçabilité)
+4. Si aucun match mais données identiques détectées → side-by-side diff view présenté à l'utilisateur avec bouton "Fusionner" ou "Garder les deux"
+5. **Jamais de Last-Writer-Wins automatique** sur les transactions financières, même en état draft — INV-001 protège aussi l'intégrité de la donnée avant validation.
 
 ---
 
@@ -107,10 +116,10 @@ Lorsque l'application détecte une connexion réseau (ou via un intervalle de fo
 
 ---
 
-## 5. Intégration avec le Platform Core
+## 5. Intégration avec les Platform Capabilities
 
-Le Platform Core interagit avec le module Offline uniquement via des abstractions paires :
-- `Manifest Engine` reste en charge du schéma (`forms schema`, `workflow states`) même offline. Le moteur de formulaires s'exécute entièrement dans `src/core/forms/` et pointe vers le cache SQLite local.
+Les Platform Capabilities interagissent avec le module Offline uniquement via des abstractions paires :
+- `Manifest Engine` reste en charge du schéma (`forms schema`, `workflow states`) même offline. Le moteur de formulaires s'exécute entièrement dans `src/capabilities/forms/` et pointe vers le cache SQLite local.
 - Aucun moteur ne doit faire d'appel HTTP bloquant. Si le réseau tombe au milieu d'une sauvegarde, le formulaire reste ouvert, sauvegardant localement jusqu'à ce que l'utilisateur puisse continuer.
 
 ---

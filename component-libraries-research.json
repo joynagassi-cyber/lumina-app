@@ -1,0 +1,215 @@
+[
+  {
+    "name": "KokonutUI",
+    "url": "https://kokonutui.com",
+    "freeComponents": [
+      {
+        "name": "Liquid Glass Card",
+        "description": "Glassmorphism card with gradient mesh and blur effects, uses lucide-react icons",
+        "license": "MIT (open source)",
+        "size": "registry:component"
+      },
+      {
+        "name": "Bento Grid",
+        "description": "Responsive bento-style grid layout with lucide icons and motion animations",
+        "license": "MIT (open source)",
+        "size": "registry:component"
+      },
+      {
+        "name": "Particle Button",
+        "description": "Animated button with particle effects on hover/click, requires lucide-react and motion",
+        "license": "MIT (open source)",
+        "size": "registry:component"
+      },
+      {
+        "name": "Currency Transfer",
+        "description": "Animated currency transfer card with icon transitions, requires lucide-react and motion",
+        "license": "MIT (open source)",
+        "size": "registry:component"
+      },
+      {
+        "name": "Attract Button",
+        "description": "Magnetic button that follows cursor, requires lucide-react and motion",
+        "license": "MIT (open source)",
+        "size": "registry:component"
+      }
+    ],
+    "paidOnly": [
+      "7 full Next.js templates (Agenta, Lume, Sonae, AI, Futur, Postly, Startup) - available only via kokonutui.pro",
+      "100+ additional premium components not in the open-source registry",
+      "Lifetime access purchase via Stripe (one-time payment, no subscription)"
+    ],
+    "rnCompatibility": "none",
+    "rnDetails": "No React Native or Expo support. All components use browser-only APIs: CSS transitions, cursor events, scroll events, and Motion for web. The 'motion' package (framer-motion fork v12+) used by KokonutUI does not ship a react-native subpath. No @react-bits/kokonutui npm package exists; installation is exclusively via shadcn CLI registry (npx shadcn@latest add @kokonutui/<name>) or copy-paste.",
+    "integration": "shadcn CLI: npx shadcn@latest init -> add @kokonutui to components.json registries -> npx shadcn@latest add @kokonutui/<name>. Also supports direct copy-paste from component pages. Requires Tailwind CSS v4, shadcn/ui primitives (card, button, input, etc.), and shadcn's cn() utility.",
+    "dependencies": [
+      "motion ^12.23.25 (framer-motion fork)",
+      "lucide-react",
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge",
+      "tw-animate-css",
+      "radix-ui/* (accordion, dialog, dropdown-menu, tooltip, etc.)",
+      "embla-carousel-react / embla-carousel-autoplay / embla-carousel-auto-scroll",
+      "@number-flow/react",
+      "@radix-ui/react-avatar",
+      "next-themes",
+      "use-debounce",
+      "vaul"
+    ],
+    "knownIssues": [
+      "Tailwind CSS v4 required (not v3 compatible)",
+      "All animations use CSS + motion/web Motion - not portable to React Native",
+      "Cursor-based interactions (mouse-effect-card, particle-button) require desktop mouse events",
+      "Some components depend on Radix UI primitives which may conflict if project already has them",
+      "No TypeScript types shipped separately - types come from the component source files themselves",
+      "70+ Pro-only components/templates gated behind kokonutui.pro one-time purchase"
+    ],
+    "exposureLevel": "medium"
+  },
+  {
+    "name": "MagicUI",
+    "url": "https://magicui.design",
+    "freeComponents": [
+      {
+        "name": "Animated Beam",
+        "description": "Animated beam of light traveling along a path, ideal for showcasing integrations",
+        "license": "MIT (fully open source)",
+        "size": "registry:ui"
+      },
+      {
+        "name": "Globe",
+        "description": "Authorotating WebGL globe using cobe (sphere-impact), motion for animations",
+        "license": "MIT (fully open source)",
+        "size": "registry:ui"
+      },
+      {
+        "name": "Magic Card",
+        "description": "Spotlight effect following cursor on hover, uses motion and next-themes",
+        "license": "MIT (fully open source)",
+        "size": "registry:ui"
+      },
+      {
+        "name": "Warp Background",
+        "description": "Card with time-warping animated background effect, requires motion",
+        "license": "MIT (fully open source)",
+        "size": "registry:ui"
+      },
+      {
+        "name": "Animated List",
+        "description": "Staggered list items with slide-in animations, requires motion",
+        "license": "MIT (fully open source)",
+        "size": "registry:ui"
+      }
+    ],
+    "paidOnly": [],
+    "rnCompatibility": "none",
+    "rnDetails": "No React Native or Expo support whatsoever. MagicUI is 100% free and open source (MIT license) - there is NO Pro/premium tier. All components target web only: they use DOM APIs (cursor tracking, scroll listeners, canvas), motion (framer-motion fork v12+), cobe (WebGL sphere-impact), and canvas-confetti. None of these dependencies are compatible with React Native. There is an npm package called magicui-cli (v0.1.6) but it is a separate community tool, not the official library, and does not add RN support.",
+    "integration": "shadcn CLI: npx shadcn@latest init -> npx shadcn@latest add @magicui/<component>. Also supports manual copy-paste. The documentation site is the primary reference with 247 registry items (77 documented components plus demos/examples). Uses Tailwind CSS v4 and the new-york shadcn style.",
+    "dependencies": [
+      "motion ^12.23.12 (framer-motion fork)",
+      "lucide-react",
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge",
+      "tw-animate-css",
+      "cobe ^0.6.4 (for Globe - WebGL, browser-only)",
+      "canvas-confetti (browser Canvas API)",
+      "@radix-ui/react-* (accordion, alert-dialog, dialog, dropdown-menu, tabs, toast, tooltip, etc.)",
+      "next-themes",
+      "@hookform/resolvers + react-hook-form",
+      "react-day-picker",
+      "react-tweet",
+      "rough-notation",
+      "svg-dotted-map",
+      "countries-list",
+      "@tabler/icons-react",
+      "cmdk"
+    ],
+    "knownIssues": [
+      "Tailwind CSS v4 required (not v3 compatible)",
+      "Heavy reliance on browser APIs: cursor events, scroll listeners, canvas, WebGL (Globe component uses cobe/Three.js)",
+      "No server-side rendering support for many components (all client-side with motion)",
+      "Next.js-focused documentation - some examples assume App Router pattern",
+      "No TypeScript types packaged separately - types come from TSX source files",
+      "confetti component uses browser Canvas API (not RN-compatible)",
+      "dock component uses mouse-based hover detection (desktop-only interaction)",
+      "178 registry entries include demo/example variants - not all are standalone installable components"
+    ],
+    "exposureLevel": "high"
+  },
+  {
+    "name": "React Bits",
+    "url": "https://reactbits.dev",
+    "freeComponents": [
+      {
+        "name": "SplitText",
+        "description": "Splits text into characters/words for staggered entrance animation, requires GSAP",
+        "license": "MIT + Commons Clause (cannot resell components)",
+        "size": "registry:component (4 variants per component)"
+      },
+      {
+        "name": "Magnet",
+        "description": "Elements magnetic-ease toward cursor then settle with spring physics, zero dependencies",
+        "license": "MIT + Commons Clause",
+        "size": "registry:component (4 variants per component)"
+      },
+      {
+        "name": "BlurText",
+        "description": "Text starts blurred then crisply resolves - soft-focus reveal, requires motion",
+        "license": "MIT + Commons Clause",
+        "size": "registry:component (4 variants per component)"
+      },
+      {
+        "name": "GradientText",
+        "description": "Animated gradient sweep across live text with speed/color control, requires motion",
+        "license": "MIT + Commons Clause",
+        "size": "registry:component (4 variants per component)"
+      },
+      {
+        "name": "LogoLoop",
+        "description": "Continuously looping brand/tech logo marquee with seamless repeat, zero dependencies",
+        "license": "MIT + Commons Clause",
+        "size": "registry:component (4 variants per component)"
+      }
+    ],
+    "paidOnly": [],
+    "rnCompatibility": "none",
+    "rnDetails": "No React Native or Expo support. React Bits is 100% free and open source, but its dependency tree is the heaviest of the three: GSAP (browser animation engine, no RN support), Three.js (@react-three/fiber + drei + postprocessing for 3D components like Antigravity/Cubes, browser-only), OGL (custom WebGL for Strands), matter-js (physics, browser), face-api.js (ML inference, browser). Additionally, many components rely on requestAnimationFrame, window/document APIs, touch/pointer events, IntersectionObserver, and CSS custom properties that do not exist in React Native's bridged environment. The license (MIT + Commons Clause) also restricts commercial redistribution of the components themselves.",
+    "integration": "Two methods: (1) shadcn CLI: npx shadcn@latest add https://reactbits.dev/r/<Component>-<LANG>-<STYLE> where LANG is JS|TS and STYLE is CSS|TW. (2) jsrepo CLI: npx jsrepo@latest add https://reactbits.dev/r/<Component>-<LANG>-<STYLE>. Each component has 4 variants kept in sync. Manual copy-paste also available with technology selector on each component page.",
+    "dependencies": [
+      "motion ^12.23.12 (for many animation components)",
+      "gsap ^3.13.0 + @gsap/react ^2.1.2 (for SplitText, FallingText, and others)",
+      "@react-three/fiber ^9.3.0 + three ^0.180.0 + @react-three/drei + postprocessing (for 3D components)",
+      "ogl ^1.0.11 (for Strands)",
+      "matter-js ^0.20.0 (for physics-based components)",
+      "face-api.js ^0.22.2 (for TextPressure)",
+      "gl-matrix ^3.4.3",
+      "meshline ^3.3.1",
+      "lenis ^1.3.13 (smooth scroll)",
+      "react-virtualized ^9.22.6",
+      "react-syntax-highlighter",
+      "react-confetti",
+      "lucide-react",
+      "class-variance-authority",
+      "clsx",
+      "tailwind-merge",
+      "tailwindcss ^4.0.3",
+      "tw-animate-css",
+      "sonner",
+      "react-icons"
+    ],
+    "knownIssues": [
+      "License: MIT + Commons Clause restricts reselling components independently",
+      "GSAP-dependent components (SplitText, FallingText, GlitchText, CurvedLoop) are impossible to port to React Native",
+      "Three.js/React Three Fiber components (Antigravity, Cubes, MetallicPaint) require WebGL on the web and have no RN equivalent",
+      "OGL-based components (Strands) use raw WebGL, not RN-compatible",
+      "face-api.js (TextPressure) runs TensorFlow.js in the browser - no RN support",
+      "heaviest dependency footprint of the three libraries (56 runtime dependencies at monorepo level)",
+      "Tailwind CSS v4 required for TW variant components",
+      "No separate npm package - registry serves code directly from GitHub, not an installable package",
+      "4000+ GitHub stars indicates high adoption but also means issues likely have many open"
+    ],
+    "exposureLevel": "high"
+  }
+]

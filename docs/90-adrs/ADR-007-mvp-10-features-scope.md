@@ -86,7 +86,7 @@ Combien de fonctionnalités faut-il inclure dans le MVP et dans quel ordre ?
 Le passage à V2 est déclenché quand :
 1. Les 10 fonctionnalités MVP sont déployées et stables (zéro bug critique pendant 30 jours)
 2. Au moins 2 organisations utilisent le système en production
-3. Le développeur a validé que l'architecture Platform Core fonctionne
+3. Le développeur a validé que l'architecture Platform Capabilities fonctionne
 
 ## 7. Références
 

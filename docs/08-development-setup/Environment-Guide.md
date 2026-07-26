@@ -20,9 +20,9 @@
 | InsForge CLI | dernière stable | Global | `npm install -g @insforge/cli` OU `npx @insforge/cli` |
 
 **Environnement minimum recommandé :**
-- RAM : 8 Go minimum, 16 Go recommandé
-- Disk : 10 Go libres minimum
-- CPU : 4 cores minimum
+- RAM : 8 Go minimum, 16 Go recommandé Réelle: RAM 8GB
+- Disk : 10 Go libres minimum  Réelle: +10GB
+- CPU : 4 cores minimum Réelle: Core i7
 
 ---
 

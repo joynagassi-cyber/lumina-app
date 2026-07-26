@@ -78,7 +78,7 @@ Phase 4 : Valider et Documenter (5 min)
 | ❌ Modifier un invariant | Les invariants sont absolus |
 | ❌ Ajouter du code hardcodé | Tout passe par les moteurs |
 | ❌ Créer >400 lignes dans un doc | Règle NB-RULE-01 |
-| ❌ Scanner plus de 3 fichiers | Garde le contexte manable |
+| ❌ Scanner plus de 3 fichiers de CODE sans lien direct avec la tâche | Garde le contexte manable *(les lectures prescrites des phases 1-2 sont exclues de cette limite)* |
 | ❌ Déployer sans tests passer | Qualité minimum requise |
 | ❌ Proposer une solution sans alternative | Le développeur doit choisir |
 

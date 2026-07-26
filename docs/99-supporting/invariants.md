@@ -26,8 +26,8 @@ Erreur → Créer transaction COMPENSATOIRE (status: correction)
 ```
 
 ### INV-002 : Séparation Core / Business
-**Le Platform Core ne contient aucune logique métier spécifique à un type d'organisation.**  
-Tout comportement organisationnel passe par un moteur interprété (Manifest, Workflow, Forms). Le code core ne contient JAMAIS de `if (type === 'church')`.
+**Les Platform Capabilities ne contiennent aucune logique métier spécifique à un type d'organisation.**  
+Tout comportement organisationnel passe par un moteur interprété (Manifest, Workflow, Forms). Le code des capacités de la Platform ne contient JAMAIS de `if (type === 'church')`.
 
 ### INV-003 : Offline-Absolue
 **L'application est toujours fonctionnelle sans connexion réseau.**  
@@ -39,7 +39,7 @@ Même au niveau requête SQL, même au niveau cache, même au niveau logs. L'org
 
 ### INV-005 : Manifest > Code Dur
 **Si une règle peut être exprimée en configuration manifest, elle DOIT l'être, jamais être codée en dur.**  
-Le code hardcodé ne sert qu'à implémenter les moteurs du Platform Core.
+Le code hardcodé ne sert qu'à implémenter les capacités des Platform Capabilities.
 
 ### INV-006 : Vocabulary的唯一Source
 **Chaque valeur enum/projetée vient du Vocab Engine.**  

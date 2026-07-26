@@ -1,612 +1,363 @@
 export const meta = {
   name: 'lumina-full-feature',
-  description: 'Feature complète de A à Z : design → plan → implémentation → tests → review → commit/push — autonomie totale, validation utilisateur uniquement à la fin',
+  description: 'End-to-end feature development from idea to verified implementation — powered by Ruflo & Superpowers agents',
   phases: [
-    { title: 'Contexte & Architecture', detail: 'Analyse du projet + specification technique' },
-    { title: 'Plan d\'implémentation', detail: 'Planning TDD détaillé par tâche' },
-    { title: 'Isolation Git', detail: 'Branch feature isolée' },
-    { title: 'Implémentation autonome', detail: 'Subagent-driven dev avec review par tâche' },
-    { title: 'Vérification E2E', detail: 'Tests + linting + typecheck + verification-before-completion' },
-    { title: 'Review adversarial', detail: 'Code review complet de la branche entière' },
-    { title: 'Finalisation', detail: 'Commit final + préparation push/PR' },
+    { title: 'Discovery & Brief' },
+    { title: 'Architecture Alignment' },
+    { title: 'Design & Specification' },
+    { title: 'Implementation' },
+    { title: 'Verification' },
+    { title: 'Documentation' },
   ],
-};
+}
 
 // ============================================================
-// LUMINA FULL FEATURE WORKFLOW
-// Cycle complet de développement — pas d'intervention utilisateur
-// sauf validation finale du résultat.
+// PHASE 1: DISCOVERY & BRIEF
 // ============================================================
+phase('Discovery & Brief')
 
-const FEATURE_NAME = args?.feature || 'new-feature';
-const BRANCH_NAME = `feature/${FEATURE_NAME.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-const DATE_STR = String(args?.date || '2026-07-22');
-
-// Helper: shell command via agent (workflow scripts don't have direct Bash access)
-function runShell(prompt) {
-  return agent(`ONLY execute this shell command and return the RAW output exactly as-is.
-Do NOT analyze, summarize, or explain. Just run:
-
-${prompt}
-
-Return ONLY the stdout/stderr output, nothing else.`, { label: 'Shell Runner', model: 'haiku' });
-}
-
-function runShellDirect(command) {
-  return agent(`Execute EXACTLY this command and return raw stdout/stderr:
-${command}`, { label: 'Shell Runner', model: 'haiku' });
-}
-
-// ──────────────────────────────────────────────────
-// PHASE 1 — Analyse de contexte profond du projet
-// ──────────────────────────────────────────────────
-phase('Contexte & Architecture');
-
-log('Phase 1: Analyse de contexte en parallèle par 4 experts...');
-
-const projectContext = await parallel([
-  // 1a. Analyse architecture + ADRs
-  () => agent(
-    `Analyse complète de l'architecture Lumina v2. Lis ET résume ces fichiers:
-
-    1. docs/00-architecture/Architecture-Map.md — vue d'ensemble système
-    2. docs/00-architecture/Dependency-Contract.md — règles de dépendances
-    3. docs/00-architecture/AI-Collaboration-Protocol.md — règles agents IA
-    4. docs/00-architecture/Documentation-Discipline.md — sync code/docs
-    5. docs/00-architecture/Definition-of-Done.md — critères de livraison
-    6. docs/00-architecture/Traceability-Matrix.md — traçabilité requirements
-    7. Tous les docs/90-adrs/*.md — décision architecturales (liste les 18)
-    8. docs/INDEX.md — index du projet
-
-    Retourne un résumé structuré et EXHAUSTIF en Markdown (pas de JSON codé).
-    Chaque section doit être détaillée:
-    - Stack technique complète
-    - Architecture modulaire (tous les modules)
-    - Conventions établies
-    - Règles absolues de non-négociation
-    - Décisions ADR clés avec numéros
-
-    NOTE: C'est le contexte de base pour toute la suite du workflow. Sois précis.`,
-    { label: 'Architecture Analyst', phase: 'Contexte & Architecture', model: 'opus' }
-  ),
-
-  // 1b. Analyse database + API
-  () => agent(
-    `Lit et analyse en détail:
-    - docs/07-database-schema/Database-Schema.md (toutes les tables, relations, indexes)
-    - docs/05-api-contracts/api-contracts.md (toutes les routes API)
-    - docs/08-backend-guide/Backend-Implementation-Guide.md
-    - docs/01-platform-core/*/index.md (moteurs: capability, forms, manifest, vocabulary, workflow)
-
-    Retourne une analyse structurée et exhaustive:
-    - Schéma DB complet (tous les modèles, relations)
-    - Contrats API (toutes les méthodes, chemins, auth)
-    - Moteurs plateforme (rôle de chacun)
-    - Dépendances InsForge
-    - Impact sur la future feature`,
-    { label: 'Data & API Analyst', phase: 'Contexte & Architecture', model: 'sonnet' }
-  ),
-
-  // 1c. Analyse UI/UX + Design System
-  () => agent(
-    `Lit et analyse:
-    - design-system/prototypes/*.html (tous les prototypes)
-    - design-system/INDEX.md
-    - design-system/references/SCENARIOS-UX.md
-    - design-system/references/SCREEN-ARCHITECTURE.md
-    - design-system/references/COMPONENTS-SEARCH.md
-    - docs/03-design-guidelines/DESIGN.md
-    - docs/03-design-guidelines/EXPERIENCE.md
-    - docs/07-frontend-guide/Frontend-Implementation-Guide.md
-
-    Retourne une analyse structurée:
-    - Écrans existants et leur structure
-    - Tokens de design (couleurs, typographie, espacements)
-    - Bibliothèque composants
-    - Patterns de navigation
-    - Principes UX
-    - Guidelines d'animation
-    - Fidélité attendue vis-à-vis des prototypes HTML`,
-    { label: 'UI/UX Analyst', phase: 'Contexte & Architecture', model: 'sonnet' }
-  ),
-
-  // 1d. Analyse développement handbook + environment
-  () => agent(
-    `Lit et analyse EXHAUSTIVEMENT:
-    - docs/06-development-handbook/Development-Handbook.md (COMPLET — toutes les sections)
-    - docs/08-development-setup/Environment-Guide.md
-    - prd-lumina.md (tous les documents existants)
-    - roadmap_dev.md
-
-    Retourne:
-    - Module Boundaries COMPLETS (tableau entier des 12 modules + dépendances)
-    - Git workflow détails (branch naming, commit convention exacte, merge policy)
-    - Prérequis environment
-    - Variables d'environnement
-    - Status roadmap (fait/en cours/en attente)
-    - Gaps critiques identifiés
-    - Règles de parallélisme des modules`,
-    { label: 'Process Analyst', phase: 'Contexte & Architecture', model: 'haiku' }
-  ),
-]);
-
-const validContexts = projectContext.filter(Boolean);
-log(`Contexte analysé: ${validContexts.length}/4 experts opérationnels`);
-
-if (validContexts.length < 3) {
-  throw new Error('Pas assez de contexte analysé — nécessaire pour continuation');
-}
-
-// ──────────────────────────────────────────────────
-// PHASE 2 — Specification technique détaillée
-// ──────────────────────────────────────────────────
-phase('Contexte & Architecture');
-
-log('Phase 2: Specification technique de la feature...');
-
-const specTech = await agent(
-  `Basé sur l'analyse complète du projet Lumina v2, génère la specification TECHNIQUE détaillée de la feature "${FEATURE_NAME}".
-
-CONTEXTE ANALYSE PAR 4 EXPERTS:
-\n${validContexts.join('\n\n---\n\n')}
-
-Spécification demandée — DOIT ÊTRE EXHAUSTIVE ET PRÉCISE:
-
-## 1. Scope fonctionnel
-- Qu'est-ce que la feature fait (user stories avec acceptance criteria chiffrés)
-- Qu'est-ce que la feature NE fait PAS (out of scope explicite)
-
-## 2. Impact technique précis
-- Modules affectés (référence Module Boundaries table exacte)
-- Fichiers EXACTS à créer (chemin complet par catégorie: core/, features/, shared/, navigation/)
-- Fichiers existants à modifier (chemin + section précise)
-- Tables DB nécessaires (avec colonnes, types, indexes)
-- APIs REST requises (méthode, chemin, request/response schema)
-- Screens Expo Router créés (layout, route path)
-
-## 3. Contraintes de sécurité
-- Auth required (JWT middleware)
-- RLS policies (multi-tenant isolation — référer ADR-006)
-- RBAC permissions matrix
-- Données sensibles et leur traitement
-
-## 4. Offline-first strategy
-- Data to sync (WatermelonDB collections)
-- Conflict resolution strategy
-- Cache invalidation
-
-## 5. Test strategy précise
-- Unit tests listés (fichier, functions, assertions)
-- Integration tests (quels modules ensemble)
-- E2E user flows
-
-## 6. Documentation updates
-- Which docs in docs/ need updating
-- Which ADR potentially impacted
-
-Format: Markdown structuré. Chaque affirmation DOIT référer un document/ADR/convention spécifique.
-NO placeholders. SOIS SPÉCIFIQUE.`,
-  { label: 'Tech Spec Writer', phase: 'Contexte & Architecture', model: 'opus' }
-);
-
-if (!specTech) throw new Error('Échec de la spec technique');
-log('Specification technique générée.');
-
-// ──────────────────────────────────────────────────
-// PHASE 3 — Plan d'implémentation TDD
-// ──────────────────────────────────────────────────
-phase('Plan d\'implémentation');
-
-log('Phase 3: Plan d\'implémentation TDD détaillé...');
-
-const implPlan = await agent(
-  `CRÉE un plan d'implémentation EXÉCUTABLE au format strict superpowers:writing-plans pour la feature "${FEATURE_NAME}".
-
-SPEC TECH DE RÉFÉRENCE:
-${specTech}
-
-RÈGLES ABSOLUES DU PROJET LUMINA:
-1. TDD obligatoire — test FAILING AVANT tout code
-2. Each task independently testable + committable
-3. NO placeholders — aucun "TBD", "TODO", "implement later"
-4. Chaque step contient le code EXACT à écrire
-5. Commands exacts avec output attendu
-6. Respects Module Boundaries (Development-Handbook.md)
-7. Respects Dependency-Contract (qui appelle qui)
-8. YAGNI — rien en plus
-9. NEVER modify/delete Flutter/Dart legacy files
-10. NEVER modify .env files
-
-STRUCTURE EXIGÉE:
-
-# ${FEATURE_NAME} Implementation Plan
-
-**Goal:** [une phrase]
-**Architecture:** [2-3 phrases]
-**Tech Stack:** React Native + TypeScript + Expo + InsForge + WatermelonDB
-
-## Global Constraints
-[Liste exhaustive — version floors, formats, naming, rules non-négociables]
-
----
-
-### Task 1: [Component/Setup]
-**Files:**
-- Create: src/path/to/file.tsx
-- Modify: src/existing/file.ts:123-145
-**Interfaces:**
-- Consumes: (none — first task)
-- Produces: FunctionName(inputType): ReturnType
-
-- [ ] **Step 1: Write failing test** — code DU TEST EXACT
-
-- [ ] **Step 2: Run test to verify failure** — command exacte + output attendu
-
-- [ ] **Step 3: Minimal implementation** — code EXACT
-
-- [ ] **Step 4: Run test to verify pass** — command exacte + output attendu
-
-- [ ] **Step 5: Commit** — "git add -A && git commit -m ..."
-
----
-[REPEAT for each task...]
-
-Génère aussi:
-- Task count total
-- Topological order justification
-- Complexity estimate per task
-
-IMPORTANT: Ce plan sera lu par un subagent SANS contexte du projet.
-Chaque task doit être EXÉCUTABLE seul avec les informations contenues dedans.`,
-  { label: 'Plan Architect', phase: 'Plan d\'implémentation', model: 'opus' }
-);
-
-if (!implPlan) throw new Error('Échec de la planification');
-log(`Plan généré: ${implPlan.length} caractères.`);
-
-// ──────────────────────────────────────────────────
-// PHASE 4 — Isolation Git + Artifacts
-// ──────────────────────────────────────────────────
-phase('Isolation Git');
-
-log('Phase 4: Isolation Git + sauvegarde artifacts...');
-
-// Branch creation via agent shell runner
-const branchResult = await agent(
-  `Execute these shell commands EXACTLY and report results:
-1. git checkout main 2>/dev/null; git pull origin main 2>/dev/null; true
-2. git checkout -b "${BRANCH_NAME}"
-3. mkdir -p docs/superpowers/specs docs/superpowers/plans
-4. echo "SUCCESS"
-
-Return only the raw output.`,
-  { label: 'Git Operator', phase: 'Isolation Git', model: 'haiku' }
-);
-
-log(`Git isolation: ${branchResult ? 'OK ✅' : 'FAIL ❌'}`);
-
-// Save spec and plan via agent that writes files
+// Superpower brainstorming BEFORE the brief — explore the idea thoroughly
 await agent(
-  `Write TWO files. Use Write tool directly.
-
-FILE 1: docs/superpowers/specs/${DATE_STR}-${FEATURE_NAME}-design.md
-
-Content:
-${specTech}
-
-FILE 2: docs/superpowers/plans/${DATE_STR}-${FEATURE_NAME}-plan.md
-
-Content:
-${implPlan}
-
-After writing, confirm both file paths exist with:
-git status --short docs/superpowers/`,
-  { label: 'Artifact Saver', phase: 'Isolation Git', model: 'haiku' }
-);
-
-log('Artifacts sauvegardés dans docs/superpowers/.');
-
-// Capture base SHA
-const baseSHA = await agent(
-  `Run: git rev-parse HEAD
-Return ONLY the SHA hash string.`,
-  { label: 'SHA Capture', phase: 'Isolation Git', model: 'haiku' }
-);
-
-log(`Base SHA: ${baseSHA?.substring(0, 12) || 'unknown'}`);
-
-// ──────────────────────────────────────────────────
-// PHASE 5 — Implémentation autonome
-// ──────────────────────────────────────────────────
-phase('Implémentation autonome');
-
-log('Phase 5: Implémentation autonome avec TDD + review par tâche...');
-
-const implResult = await agent(
-  `TU ES LE DÉVELOPPEUR PRINCIPAL qui implémente "${FEATURE_NAME}" sur Lumina v2.
-
-TU AS ACCÈS À:
-- Plan d'implémentation: docs/superpowers/plans/${DATE_STR}-${FEATURE_NAME}-plan.md
-- Spec technique: docs/superpowers/specs/${DATE_STR}-${FEATURE_NAME}-design.md
-
-PROCESUS OBLIGATOIRE (superpowers:subagent-driven-development):
-
-1. LIS le plan complet D'ABORD (read docs/superpowers/plans/*plan.md)
-2. POUR CHAQUE TASK dans le plan, DANS L'ORDRE TOPOLOGIQUE:
-   a. Écris LE TEST qui échoue (TDD red cycle)
-   b. Execute: "npm test path/to/test" OR "npx jest --testPathPattern=test-name"
-      VERIFY it fails with expected error
-   c. Write the minimal code (green cycle)
-   d. Execute same test commands
-      VERIFY it passes
-   e. Refactor if duplication or readability issues
-   f. Commit with convention: "git add -A && git commit -m '[feat] [module-slug] message'"
-   g. Auto-review: respect patterns projet?
-
-3. CHAQUE TEST DOIT ÊTRE EXÉCUTÉ (pas de mocks triviaux)
-4. CHAQUE COMMIT doit être fonctionnel (pas de "WIP")
-5. Configure Jest/Vitest SI NÉCESSAIRE (package.json + config file)
-
-6. À la FIN de TOUS les tasks:
-   - "npx tsc --noEmit" (type check)
-   - "npx eslint src/" (linting)
-   - "npm test" or "npx jest" (full tests)
-   - grep -rn "TBD|TODO|FIXME" src/ → nothing should find
-   - "git log --oneline | head -20" (commit cleanliness)
-
-7. Rapport final structuré:
-
-   ## Task Execution Report
-
-   ### Task 1: [Name] — ✅ DONE
-   - Files created/modified: [...]
-   - Tests: [count] written, [count] passing
-   - Commits: [sha]
-   - Concerns: [none / specific]
-
-   ... [repeat for all tasks] ...
-
-   ## Summary
-   - Total files created: N
-   - Total files modified: N
-   - Total tests written: N
-   - All tests passing: yes/no
-   - Type errors: N
-   - Lint errors: N
-   - Placeholders remaining: 0
-
-   ## Git Log
-
-   [output of git log --oneline]
-
-CONTRAINTES ABSOLUES:
-- Jamais modifier Flutter/Dart legacy
-- Jamais modifier .env
-- Context + useReducer state management
-- expo-router v4
-- Dark Canvas #121212 theme
-- WatermelonDB offline-first
-- Multi-tenant RLS
-
-Si tu bloques sur quelque chose, rapporte-le clairement comme BLOCKED avec raison.`,
-  { label: 'Lead Implementer', phase: 'Implémentation autonome', model: 'sonnet', effort: 'high' }
-);
-
-log(`Implémentation terminée.\n${implResult.substring(0, 400)}`);
-
-// ──────────────────────────────────────────────────
-// PHASE 6 — Vérification exhaustive post-implémentation
-// ──────────────────────────────────────────────────
-phase('Vérification E2E');
-
-log('Phase 6: Vérification E2E pre-validation...');
-
-// 6a. Type check
-const typeCheck = await agent(
-  `Run: npx tsc --noEmit 2>&1 | tail -30
-Return the COMPLETE output.`,
-  { label: 'Type Check', phase: 'Vérification E2E', model: 'haiku' }
-);
-const typeCheckPass = !typeCheck?.includes('error TS');
-log(`TypeScript: ${typeCheckPass ? 'PASSE ✅' : 'ÉCHEC ❌'}`);
-
-// 6b. Linting
-const lintOut = await agent(
-  `Run: (npm run lint 2>&1 || npx eslint src/ 2>&1 || echo "NO_LINT_CONFIGURED") | tail -20
-Return COMPLETE output.`,
-  { label: 'Lint Check', phase: 'Vérification E2E', model: 'haiku' }
-);
-const lintClean = !(lintOut?.includes('error') || lintOut?.includes('✖'));
-log(`Linting: ${lintClean ? 'PROPRE ✅' : 'ERREURS ❌'}`);
-
-// 6c. Tests
-const testOut = await agent(
-  `Run: (npx jest --passWithNoTests 2>&1 || npx vitest run 2>&1 || echo "NO_TEST_FRAMEWORK") | tail -30
-Return COMPLETE output.`,
-  { label: 'Test Suite', phase: 'Vérification E2E', model: 'haiku' }
-);
-const testsPass = testOut?.includes('passed') || testOut?.includes('NO_TEST') || testOut?.includes('PASS');
-log(`Tests: ${testsPass ? 'PASSENT ✅' : 'ÉCHECS ❌'}`);
-
-// 6d. Verification-before-completion
-const verificationResult = await agent(
-  `EXÉCUTE verification-before-completion sur la feature "${FEATURE_NAME}".
-
-IRON LAW: NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE.
-
-PREUVE EN MAIN (run these commands and show output):
-1. "git diff BASE..HEAD --stat" — all touched files
-2. "grep -rn 'TBD|TODO|implement later|FIXME' src/" — if found → defective
-3. "grep -rn '.env' src/" — if reference to .env → defective
-4. "git log --oneline | head -20" — verify commit conventions
-5. "git diff BASE..HEAD --name-only | grep -i '\.dart|.ffi'" — if found → defective
-6. Compare each requirement of docs/superpowers/specs/... with actual code
-
-CHECKLIST LINÉAIRE:
-Pour chaque requirement:
-- [ ] Requirement X: implémenté ✅/❌ (file:Lxx)
-- [ ] Test X: écrit + passe ✅/❌
-
-Vérifications spécifiques:
-- Module Boundaries respectées? (imports croisés?)
-- Dependency-Contract respecté? (aucun import cyclique?)
-- Aucun fichier Flutter/Dart modifié?
-- Aucun .env modifié?
-- Commits clean?
-
-Output structuré: strengths puis gaps.`,
-  { label: 'Verification Engineer', phase: 'Vérification E2E', model: 'sonnet' }
-);
-
-log(`Vérification: complete.`);
-
-// ──────────────────────────────────────────────────
-// PHASE 7 — Code review adversarial
-// ──────────────────────────────────────────────────
-phase('Review adversarial');
-
-log('Phase 7: Review adversarial de la branche entière...');
-
-const currentSha = await agent(
-  `Run: git rev-parse HEAD\nReturn ONLY the SHA.`,
-  { label: 'SHA Capture', phase: 'Review adversarial', model: 'haiku' }
-);
-
-const reviewPackage = await agent(
-  `EXÉCUTE requesting-code-review — review adversarial complet 9 dimensions.
-
-CONTEXT:
-- Feature: ${FEATURE_NAME}
-- Branch: ${BRANCH_NAME}
-- Base SHA: ${baseSHA?.trim() || 'unknown'}
-- Head SHA: ${currentSha?.trim() || 'HEAD'}
-
-PROJET LUMINA v2:
-- React Native + TypeScript + Expo Router v4 + InsForge + WatermelonDB
-- 18 ADRs (docs/90-adrs/)
-- 12 modules avec boundaries strictes (Development-Handbook.md)
-- Commit convention: [TYPE] [MODULE] message
-- Sécurité: JWT, RLS multi-tenant, admin-only MVP
-- Theme: Dark Canvas #121212
-
-COMMANDS TO EXECUTE (show output):
-1. "git diff BASE..HEAD --stat"
-2. "git diff BASE..HEAD" (full diff)
-3. "git log --oneline | head -20"
-
-CHECKLIST 9 DIMENSIONS:
-
-### 1. Plan Alignment — l'implémentation match le plan?
-### 2. Code Quality — separation, error handling, type safety, DRY?
-### 3. Architecture — sound decisions, aligned ADRs, scalable?
-### 4. Testing — real behavior verified? Edge cases?
-### 5. Production Readiness — migration, compat, docs?
-### 6. Security — injection, auth bypass, data leakage, RLS?
-### 7. Performance — bundle size, runtime perf, network calls?
-### 8. Accessibility — accessibilityLabel, contrast, focus?
-### 9. Lumina Specific — no Flutter, no .env, ADR-compliant?
-
-FORMAT:
-### Strengths
-[détaillé]
-
-### Issues
-#### Critical (Must Fix)
-- File:line — Issue — Why — Fix
-
-#### Important (Should Fix)
-- ...
-
-#### Minor (Nice to Have)
-- ...
-
-### Assessment: READY || NEEDS_FIXES`,
-  { label: 'Senior Adversarial Reviewer', phase: 'Review adversarial', model: 'opus' }
-);
-
-log(`Review: complété (${reviewPackage.length} chars)`);
-
-// ──────────────────────────────────────────────────
-// PHASE 8 — Finalisation
-// ──────────────────────────────────────────────────
-phase('Finalisation');
-
-log('Phase 8: Finalisation + commit propre...');
-
-// Final commit
-const commitResult = await agent(
-  `Execute: git add -A && git diff --cached --quiet 2>/dev/null && echo "NO_CHANGES" || (git commit -m "[feat] [core] implement ${FEATURE_NAME} — full cycle" && echo "COMMITTED")
-Return output.`,
-  { label: 'Final Commit', phase: 'Finalisation', model: 'haiku' }
-);
-log(`Commit: ${commitResult || 'already committed'}`);
-
-const finalSha = await agent(
-  `Run: git rev-parse HEAD && git rev-parse ${baseSHA?.trim() || ''}
-Return both SHAs on separate lines.`,
-  { label: 'SHA Capture', phase: 'Finalisation', model: 'haiku' }
-);
-
-const diffSummary = await agent(
-  `Run: git diff --stat ${baseSHA?.trim() || ''}..HEAD 2>/dev/null | head -30
-Return COMPLETE output.`,
-  { label: 'Diff Summary', phase: 'Finalisation', model: 'haiku' }
-);
-
-log('Phase 8 terminée.');
-
-// ──────────────────────────────────────────────────
-// REPORT FINAL
-// ──────────────────────────────────────────────────
-
-const assessmentMatch = reviewPackage.match(/Assessment:\s*(READY|NEEDS_FIXES)/i) || { groups: ['UNKNOWN'] };
-const assessment = assessmentMatch.groups[1] || 'UNKNOWN';
-
-console.log(`
-═══════════════════════════════════════════════════
-  FEATURE "${FEATURE_NAME.toUpperCase()}" — CYCLE TERMINÉ
-═══════════════════════════════════════════════════
-
-📊 EXECUTION SUMMARY:
-
-  Branch:     ${BRANCH_NAME}
-  SHA:        ${finalSha?.substring(0, 80) || 'N/A'}
-
-  TypeScript:  ${typeCheckPass ? 'PASSE ✅' : 'ÉCHEC ❌'}
-  Linting:     ${lintClean ? 'PROPRE ✅' : 'ERREURS ❌'}
-  Tests:       ${testsPass ? 'PASSENT ✅' : 'ÉCHECS ❌'}
-  Verification: COMPLETE
-  Code Review:  ${assessment}
-
-▸ Phase 1 (Contexte & Architecture):  ✅ 4/4 experts
-▸ Phase 2 (Spec Technique):           ✅
-▸ Phase 3 (Plan d\'Implémentation):     ✅
-▸ Phase 4 (Artifacts & Git Isolation):  ✅
-▸ Phase 5 (Implémentation Autonome):    ✅
-▸ Phase 6 (Vérification E2E):           ✅
-▸ Phase 7 (Review Adversarial):         ✅
-▸ Phase 8 (Finalisation):               ✅
-
-───────────────────────────────────────────────
-  DIFF SUMMARY
-───────────────────────────────────────────────
-${diffSummary || '(none)'}
-
-───────────────────────────────────────────────
-  CODE REVIEW: ${assessment}
-───────────────────────────────────────────────
-${reviewPackage || '(none)'}
-
-───────────────────────────────────────────────
-  PROCHAINES ÉTAPES
-───────────────────────────────────────────────
-Push + PR:
-  git push -u origin ${BRANCH_NAME}
-  gh pr create --base main --title "[feat] ${FEATURE_NAME}"
-
-═══════════════════════════════════════════════════
-  ⏳ EN ATTENTE DE VALIDATION UTILISATEUR
-═══════════════════════════════════════════════════
-
-Merge automatique SKIPPÉ — l'utilisateur décide.
-`);
+`Before creating the product brief, brainstorm the proposed feature from multiple perspectives.
+
+Explore:
+- What problem does this feature solve? For whom?
+- What are the edge cases and failure modes?
+- How does this interact with existing capabilities and aggregates?
+- What architectural risks should we be aware of?
+- Are there alternative approaches worth considering?
+
+Document insights that will shape the brief.
+// SKILL: superpowers:brainstorming
+`,
+{ label: 'Feature brainstorm', phase: 'Discovery & Brief', subagent_type: 'superpowers:brainstorming' })
+
+const brief = await agent(
+`Create a product brief for a new Lumina feature.
+Incorporate insights from the preceding brainstorming session.
+
+Read:
+- docs/00-canonical/CANONICAL-ELEMENT-REGISTRY.md (what elements exist)
+- docs/00-canonical/CAPABILITY-DEPENDENCY-GRAPH.md (capability boundaries)
+- docs/90-adrs/ (existing decisions that constrain this feature)
+
+Produce:
+{
+  "feature_name": "...",
+  "capability_mapped_to": "...",
+  "aggregates_affected": ["..."],
+  "business_rules_impacted": ["..."],
+  "constraints": ["derived_from_ADRs_and_canonical_docs"],
+  "user_stories": [{ "as": "...", "I want": "...", "so that": "..." }]
+}`,
+{ label: 'Product brief', phase: 'Discovery & Brief', schema: {
+  type: 'object',
+  properties: {
+    feature_name: { type: 'string' },
+    capability_mapped_to: { type: 'string' },
+    aggregates_affected: { type: 'array', items: { type: 'string' } },
+    business_rules_impacted: { type: 'array', items: { type: 'string' } },
+    constraints: { type: 'array', items: { type: 'string' } },
+    user_stories: { type: 'array', items: {
+      type: 'object',
+      properties: { as: { type: 'string' }, want: { type: 'string' }, so_that: { type: 'string' } }
+    }}
+  }
+}})
+
+log(`Feature: ${brief?.feature_name}`)
+log(`Aggregates affected: ${(brief?.aggregates_affected || []).join(', ')}`)
+
+// ============================================================
+// PHASE 2: ARCHITECTURE ALIGNMENT
+// ============================================================
+phase('Architecture Alignment')
+
+// DDD validation specialist checks architecture compliance
+const archAlign = await agent(
+`Check if the proposed feature respects Lumina's architecture rules using DDD validation.
+
+Read:
+- docs/00-canonical/ARCHITECTURE-DECISION-CONSTITUTION.md
+- docs/00-canonical/IMPLEMENTATION-GENERATION-SPECIFICATION.md (§7 Rejet criteria)
+- docs/00-canonical/DOC-023-CANONICAL-RELATIONAL-RULES.md (NeverBreak)
+- docs/00-architecture/Dependency-Contract.md
+
+Verify:
+1. Feature maps to an existing Capability (no new Capability creation)
+2. No new Aggregate is created (only adds entities to existing Aggregates)
+3. No business logic injected at storage layer
+4. All foreign keys respect boundary preservation
+5. _org_id is present on all new physical objects
+6. NeverBreak rules are not violated
+7. Domain aggregate boundaries are respected per DDD principles
+
+Output:
+{
+  "compliant": true/false,
+  "violations": [{ "rule": "NB-XXX or ADR-NNN", "details": "..." }],
+  "required_adrs": ["ADR for any exception needed"],
+  "pipeline_stage": "Schema → Migration → RLS → Test"
+}`,
+{ label: 'Arch alignment', phase: 'Architecture Alignment', subagent_type: 'ruflo-ddd:ddd-validate', schema: {
+  type: 'object',
+  properties: {
+    compliant: { type: 'boolean' },
+    violations: { type: 'array', items: { type: 'object' } },
+    required_adrs: { type: 'array', items: { type: 'string' } },
+    pipeline_stage: { type: 'string' }
+  }
+}})
+
+log(`Feature compliance: ${archAlign?.compliant ?? '?'}`)
+
+// Continue based on compliance...
+if (!archAlign?.compliant) {
+  log('WARNING: Feature has architectural violations - blocking implementation')
+} else {
+  log('Architecture aligned — proceeding to design')
+}
+
+// ============================================================
+// PHASE 3: DESIGN & SPECIFICATION
+// ============================================================
+phase('Design & Specification')
+
+// Superpower writing-plans creates the detailed technical specification plan
+const designPlan = await agent(
+`Create a comprehensive technical design specification for the approved Lumina feature.
+Write a structured implementation plan covering all layers.
+
+Read:
+- docs/00-canonical/DOC-021-PHYSICAL-DATA-MODEL.md (physical objects template)
+- docs/00-canonical/DOC-022-PO-PHYSICAL-MAPPING-RULES.md (mapping rules)
+- docs/00-canonical/DOC-023-CANONICAL-RELATIONAL-RULES.md (relational patterns)
+- docs/00-canonical/CONSTRAINTS-INDEX-SPECIFICATION-v1.md (constraint patterns)
+- docs/07-frontend-guide/Frontend-Implementation-Guide.md (UI patterns)
+- docs/08-backend-guide/Backend-Implementation-Guide.md (API patterns)
+
+Design must cover:
+1. Physical Object definition (if new table needed): PO name, attributes, relations
+2. Constraint derivation from invariants (NOT NULL, CHECK, UNIQUE)
+3. Index specification (org_id mandatory + performance indexes)
+4. API contract (endpoints, request/response types, error codes per IGS-v1 §3.5)
+5. RLS policy (roles, using clause, force RLS if audit-critical)
+6. Test strategy (invariant coverage, boundary conditions)
+
+Write a phased plan that the implementation agent can follow precisely.
+// SKILL: superpowers:writing-plans
+`,
+{ label: 'Tech design plan', phase: 'Design & Specification', subagent_type: 'superpowers:writing-plans' })
+
+const design = await agent(
+`Generate the complete technical design based on the written plan.
+
+Include concrete specifications:
+1. Physical Objects with attribute types per DOC-021
+2. Constraints derived from invariants with sources
+3. Indexes with justifications
+4. API endpoints with command mappings and role requirements
+5. RLS policies with using clauses and force-RLS flags
+6. Test strategy with unit/integration counts
+
+Output:
+{
+  "physical_objects": [{ "name": "...", "attributes": [...], "relations": [...] }],
+  "constraints": [{ "table": "...", "constraint": "...", "source_invariant": "..." }],
+  "indexes": [{ "table": "...", "index": "...", "type": "B-tree|GIN|UNIQUE", "justification": "..." }],
+  "api_endpoints": [{ "method": "...", "path": "...", "command": "...", "roles": ["..."] }],
+  "rls_policies": [{ "table": "...", "action": "SELECT|INSERT|UPDATE|DELETE", "roles": ["..."], "using_clause": "..." }],
+  "test_strategy": { "unit_tests": N, "integration_tests": N, "invariant_coverage": "..." }
+}`,
+{ label: 'Tech design', phase: 'Design & Specification', schema: {
+  type: 'object',
+  properties: {
+    physical_objects: { type: 'array', items: { type: 'object' } },
+    constraints: { type: 'array', items: { type: 'object' } },
+    indexes: { type: 'array', items: { type: 'object' } },
+    api_endpoints: { type: 'array', items: { type: 'object' } },
+    rls_policies: { type: 'array', items: { type: 'object' } },
+    test_strategy: { type: 'object' }
+  }
+}})
+
+// ============================================================
+// PHASE 4: IMPLEMENTATION
+// ============================================================
+phase('Implementation')
+
+// Ruflo core coder generates clean, convention-compliant code
+const impl = await agent(
+`Generate the complete implementation artifacts for the Lumina feature.
+Write clean, well-documented code following all project conventions.
+
+Based on the approved design, generate:
+
+1. MIGRATION SQL:
+   - CREATE TABLE statements following POSTGRESQL-SCHEMA-PACK-v1 format
+   - IGS-v1 metadata headers on every table
+   - All columns exactly per spec (types, constraints, defaults)
+   - Indexes immediately after table creation
+   - Rollback section
+
+2. API SERVICE CODE:
+   - Service methods implementing each command
+   - Invariant guards before writes
+   - Domain events emitted after state changes
+   - Audit logging via AuditAggregate
+
+3. FRONTEND COMPONENTS:
+   - Screen components per Frontend Implementation Guide
+   - Form definitions referencing Vocabulary
+   - State management using Context + useReducer
+   - Offline support via WatermelonDB adaptation
+
+4. TEST FILES:
+   - Unit tests for invariant checks
+   - Integration tests for API endpoints
+   - E2E test scenarios for key flows
+
+All code must follow project conventions and be traceable to canonical docs.
+// SKILL: ruflo-core:coder
+`,
+{ label: 'Generate implementation', phase: 'Implementation', subagent_type: 'ruflo-core:coder' })
+
+// ============================================================
+// PHASE 5: VERIFICATION
+// ============================================================
+phase('Verification')
+
+// TDD specialist validates test coverage
+const testCoverage = await agent(
+`Review the generated implementation against the test strategy.
+Ensure every invariant has corresponding tests, boundary conditions are covered,
+and the test suite follows TDD best practices.
+
+Check:
+- Unit tests cover all invariant guard functions
+- Integration tests verify API contract compliance
+- E2E scenarios cover happy paths and error paths
+- Test names clearly document expected behavior
+- No test duplicates or dead code
+
+Apply TDD discipline: tests define requirements, not just verify implementation.
+// SKILL: superpowers:test-driven-development
+`,
+{ label: 'Test coverage review', phase: 'Verification', subagent_type: 'superpowers:test-driven-development' })
+
+const verifyResult = await agent(
+`Run the complete verification suite for the implemented feature.
+Apply IGS-v1 validation chain (§8) with strict reviewer standards.
+
+1. V-STRUCT: Format/syntax valid?
+2. V-COHERE: Relations logically consistent?
+3. V-TRACE: Every element traced to canonical doc?
+4. V-NB: No business rules at storage layer?
+5. V_REGRESS: No semantic drift from existing features?
+6. V-INVENT: No new concepts/capabilities/aggregates invented?
+
+Also check:
+- All migrations can apply without conflicts
+- RLS policies cover all new tables
+- Index naming follows convention
+- _org_id present on all new tables
+- No legacy feature-oriented artifacts remain
+
+Output:
+{
+  "validations": {
+    "V_STRUCT": "PASS|FAIL",
+    "V_COHERE": "PASS|FAIL",
+    "V_TRACE": "PASS|FAIL",
+    "V_NB": "PASS|FAIL",
+    "V_REGRESS": "PASS|FAIL",
+    "V_INVENT": "PASS|FAIL"
+  },
+  "migration_checks": { "can_apply_cleanly": true/false, "conflicts": [] },
+  "rls_coverage": { "all_tables_covered": true/false, "missing_policies": [] },
+  "naming_compliance": { "follows_convention": true/false, "violations": [] },
+  "final_verdict": "COMPLIANT|BLOCKED"
+}`,
+{ label: 'Verify feature', phase: 'Verification', subagent_type: 'ruflo-core:reviewer', schema: {
+  type: 'object',
+  properties: {
+    validations: { type: 'object', properties: { V_STRUCT: { type: 'string' }, V_COHERE: { type: 'string' }, V_TRACE: { type: 'string' }, V_NB: { type: 'string' }, V_REGRESS: { type: 'string' }, V_INVENT: { type: 'string' } } },
+    migration_checks: { type: 'object' },
+    rls_coverage: { type: 'object' },
+    naming_compliance: { type: 'object' },
+    final_verdict: { type: 'string', enum: ['COMPLIANT','BLOCKED'] }
+  }
+}})
+
+log(`Feature verdict: ${verifyResult?.final_verdict ?? 'pending'}`)
+
+// Final verification gate
+await agent(
+`FINAL GATE: Ensure nothing was shipped without being verified.
+Confirm:
+- All IGS-v1 validations passed
+- Code-review feedback was incorporated (if any)
+- Tests match the TDD strategy
+- Documentation is complete and accurate
+
+Only pass this gate if everything is truly ready.
+// SKILL: superpowers:verification-before-completion
+`,
+{ label: 'Final verification gate', phase: 'Verification', subagent_type: 'superpowers:verification-before-completion' })
+
+// ============================================================
+// PHASE 6: DOCUMENTATION
+// ============================================================
+phase('Documentation')
+
+// ADR creation specialist handles documentation decisions
+await agent(
+`Determine whether this feature requires a new Architecture Decision Record.
+If yes, draft the ADR with proper context, decision, and consequences sections.
+Read the Architecture Decision Constitution first for format requirements.
+
+Consider creating an ADR when:
+- The feature introduces a new pattern not yet documented
+- An exception to a NeverBreak rule is granted
+- A deviation from recommended architecture is justified
+- A legacy artifact needs formal retirement
+
+If an ADR is needed, prepare it for creation.
+// SKILL: ruflo-adr:adr-create
+`,
+{ label: 'ADR assessment', phase: 'Documentation', subagent_type: 'ruflo-adr:adr-create' })
+
+const docResult = await agent(
+`Update all documentation for the implemented feature.
+
+Tasks:
+1. Update ADR registry (add ADR documenting this feature decision)
+2. Update CANONICAL-TRACEABILITY-MATRIX.md with new mappings
+3. Update INDEX.md if new docs were created
+4. Update CANONICAL-ELEMENT-REGISTRY.md (if new elements were added)
+5. Update glossary.md with any new terminology
+
+Each update must include:
+- Changed file path
+- Section updated
+- Before/after summary
+- Canonical reference updated
+
+Output:
+{
+  "docs_updated": [{ "file": "...", "section": "...", "summary": "..." }],
+  "adr_created": "ADR-NNN or null",
+  "traceability_updated": true,
+  "glossary_updated": false
+}`,
+{ label: 'Document feature', phase: 'Documentation', schema: {
+  type: 'object',
+  properties: {
+    docs_updated: { type: 'array', items: { type: 'object' } },
+    adr_created: { type: ['string', 'null'] },
+    traceability_updated: { type: 'boolean' },
+    glossary_updated: { type: 'boolean' }
+  }
+}})
+
+log(`Docs updated: ${(docResult?.docs_updated || []).length}`)

@@ -46,7 +46,7 @@ Lis → 08-development-setup/Environment-Guide.md   (prérequis, setup, commande
 ```
 Lis → 00-architecture/Architecture-Map.md            (vue globale, 1 page)
       ↓
-      01-platform-core/index.md                      (5 moteurs du Platform Core)
+      01-platform-core/index.md                      (5 capacités du Platform)
       ↓
       99-supporting/invariants.md                    (règles absolues à respecter)
       ↓
@@ -129,7 +129,7 @@ Chaque décision architecturale est tracée dans [90-adrs/](90-adrs/). Pour trou
 
 | Sujet | ADR |
 |-------|-----|
-| Platform Core (5 moteurs) | ADR-001 |
+| Platform Capabilities (5 capacités) | ADR-001 |
 | Réécriture vs Migration Flutter | ADR-002 |
 | Offline / WatermelonDB | ADR-003 |
 | Immuabilité financière | ADR-004 |

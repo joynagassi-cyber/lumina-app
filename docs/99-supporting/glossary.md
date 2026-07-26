@@ -10,11 +10,11 @@
 
 | Terme | Définition |
 |---|---|
-| **Platform Core** | Ensemble des 5 moteurs configurables (Manifest, Vocab, Forms, Workflow, Capability) qui rendent Lumina agnostique |
+| **Platform Capabilities** | Ensemble des capacités configurables (Manifest, Vocab, Forms, Workflow, Capability) qui rendent Lumina agnostique |
 | **Capability** | Fonctionnalité native implémentée en TypeScript, enregistrée dans le Capability Engine |
 | **Manifest** | Fichier de configuration (YAML/JSON) qui décrit une organisation spécifique |
 | **Vocabulary** | Catalogue centralisé de tous les termes, catégories et valeurs utilisées dans l'application |
-| **Runtime** | État compilé du Platform Core après chargement du manifest d'une organisation |
+| **Runtime** | État compilé des Platform Capabilities après chargement du manifest d'une organisation |
 
 ## 2. Données
 

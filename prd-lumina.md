@@ -83,6 +83,7 @@ L'application fonctionne **100% hors-ligne** avec synchronisation automatique au
 | Type de Données | Stratégie |
 |---|---|
 | Transactions financières | Immutable (bloquer après validation) |
+| Transactions Draft (hors validation) | UUID client-side + device_id, dédoublonnage à la sync, side-by-side diff si collision |
 | Membres | Last-Writer-Wins (timestamp) |
 | Événements | LWW avec notification |
 | Formulaires | Server-wins si schema mismatch |
@@ -160,6 +161,7 @@ Points clés :
 | [ADR-008](docs/90-adrs/ADR-008-modular-documentation-for-ai-agents.md) | Documentation modulaire pour agents IA |
 | [ADR-009](docs/90-adrs/ADR-009-admin-only-auth-mvp.md) | Authentification admin-uniquement en MVP |
 | [ADR-010](docs/90-adrs/ADR-010-finance-first-priority.md) | Priorité absolue au module financier |
+| [ADR-016](docs/90-adrs/ADR-016-offline-draft-concurrency.md) | Conflits offline — transactions draft multi-appareil |
 
 ---
 

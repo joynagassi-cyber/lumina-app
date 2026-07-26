@@ -15,7 +15,7 @@ organization:
   name: "Ministère le Feu de l'Evangile de Jésus-Christ"
   type: "church"
   language: "fr-FR"
-  timezone: "Africa/Lubumbashi"
+  timezone: "Africa/Bénin"
   created_at: "2026-01-01T00:00:00Z"
   logo_url: "/assets/logos/mfejc.png"
 

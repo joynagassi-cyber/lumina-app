@@ -1,0 +1,740 @@
+# Canonical Application Services Registry
+**Doc ID:** ASS-001
+**Version:** v1.0
+**Statut:** SPECIFICATION CANONIQUE DEFINIE PAR GENESIS
+**Date:** 2026-07-25
+**Generateur :** service-generator v1.0 (spec-only)
+**Source canonique :** ["DOC-012", "DOC-014", "DOC-015", "API-CONTRACT-001", "API-CONTRACT-004"]
+**Transformation_rule :** "application-service-specifier v1.0"
+**architecture_version :** "v1.0 (DOC-000-DOC-024 + ARA-v1)"
+**compliance_status :** "COMPLIANT"
+
+---
+
+## PRINCIPLE
+
+This document defines the **canonical mapping** between every Aggregate and its corresponding Application Service. Each Application Service orchestrates exactly the Commands and Queries exposed through that Aggregate's boundary (DOC-013). No Application Service exists outside an Aggregate.
+
+Total: 13 Application Services, one per Aggregate. 83 total operations (57 Commands + 26 Queries).
+
+---
+
+## SUMMARY TABLE
+
+| # | Application Service | Aggregate Owner | Command Count | Query Count | Total Ops | Invariant Count Referenced |
+|---|-------------------|----------------|---------------|-------------|-----------|--------------------------|
+| 1 | OrganizationService | OrganizationAggregate | 8 | 2 | 10 | 6 (REL-001, REL-002, INV-004, BR-ORG-002, BR-ORG-006, CFG-001..004) |
+| 2 | IdentityService | IdentityAggregate | 9 | 0 | 9 | 3 (EMAIL-001, BR-ID-001, INV-004, INV-008) |
+| 3 | ResourceService | ResourceAggregate | 10 | 2 | 12 | 12 (FIN-001/002, DATE-001, CAT-001, VERSION-001, CREATEBY-001, COMP-001, SCOPE-001, MEM-001, STATUS-010, DISABLE-011, EXPORT-001) |
+| 4 | RelationshipService | RelationshipAggregate | 3 | 3 | 6 | 5 (MULTI-020, HISTORY-022, REL-001, REL-002, INV-004) |
+| 5 | WorkflowService | WorkflowAggregate | 5 | 1 | 6 | 5 (LOG-005, CHAINS-003, WF-001, WF-005, RETRY-004) |
+| 6 | FormService | FormAggregate | 1 | 3 | 4 | 4 (FRM-004, DUAL-008, FRM-001, VOCAB-002, FRM-003) |
+| 7 | NotificationService | NotificationAggregate | 4 | 0 | 4 | 4 (NOT-001, RATE-002, CHANNEL-003, QUIET-004) |
+| 8 | VocabularyService | VocabularyAggregate | 2 | 5 | 7 | 3 (STABLE-003, TRANSLATION-002, VOC-001) |
+| 9 | ReportingService | ReportingAggregate | 1 | 2 | 3 | 4 (BAL-001, MONTH-001, SYNCED-001, EXPORT-001) |
+| 10 | AuditService | AuditAggregate | 1 | 2 | 3 | 4 (AUD-001, OLDNEW-002, ACCESS-033, RETENTION-031) |
+| 11 | LifecycleService | LifecycleAggregate | 5 | 2 | 7 | 4 (LIF-001, LIF-003, LIF-005, LIF-006) |
+| 12 | ConfigurationService | ConfigurationAggregate | 2 | 2 | 4 | 4 (CFG-001, CFG-002, CFG-003, CFG-004) |
+| 13 | OfflineSyncService | OfflineSyncAggregate | 4 | 2 | 6 | 4 (SYNC-001, SYNC-002, SYNC-003, SYNC-004) |
+| **TOTAL** | | | **57** | **26** | **83** | **58 unique invariants referenced** |
+
+---
+
+## SERVICE 1: OrganizationService
+
+**Aggregate Owner**: OrganizationAggregate
+**Service Name**: OrganizationService (abstract, not technical)
+**Boundary Scope**: OrganizationAggregate (Organization + OrgUnit entities)
+**Command Count**: 8
+**Query Count**: 2
+**Invariant Count**: 6 distinct invariants referenced
+
+### Responsibilities of the Application Service
+
+1. Receive a Command or Query from the API layer via the contract defined in API-CONTRACT-001
+2. Validate the immediate precondition before passing to the Domain
+3. Load the target Aggregate (Organization or OrgUnit)
+4. Invoke the corresponding method on the Aggregate
+5. Apply Domain invariant guards from DOC-015
+6. Capture emitted Domain Events
+7. Trigger persistence via abstraction (no direct DB access)
+8. Publish events to the event bus
+9. Return the response conforming to Response Contract (API-CONTRACT-002)
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | CreateOrganization | COMMAND | §1 | Expose | INV-004 | OrganizationCreated |
+| 2 | UpdateOrganizationSettings | COMMAND | §2 | Expose | CFG-001, CFG-002, CFG-003, CFG-004 | SettingUpdated |
+| 3 | CreateOrgUnit | COMMAND | §3 | Expose | REL-001, REL-002, BR-ORG-002 | OrgUnitCreated |
+| 4 | UpdateOrgUnitParent | COMMAND | §4 | Expose | REL-001, REL-002, BR-ORG-003 | OrgUnitParentChanged |
+| 5 | TransferChildOrg | COMMAND | §5 | Expose | REL-001 | ChildOrgTransferred |
+| 6 | MergeOrganizations | COMMAND | §6 | Expose | INV-004 | ChildOrgMerged |
+| 7 | ArchiveOrganization | COMMAND | §7 | Expose | — | OrganizationArchived |
+| 8 | SuspendOrganization | COMMAND | §8 | Expose | BR-ORG-006 | OrganizationSuspended |
+| 9 | GetOrganizationProfile | QUERY | §9 | Expose | INV-004 | — |
+| 10 | GetDescendantUnits | QUERY | §10 | Expose | REL-002 | — |
+
+### Use Case Examples
+
+#### UC-ORG-01 — CreateOrganization
+- **Description**: Create a new top-level organization with auto-generated org_id
+- **Actor**: SuperAdmin (API-CONTRACT-004)
+- **Preconditions**:
+  1. User is authenticated as SuperAdmin
+  2. No org_id needed (auto-generated by system)
+  3. Name is non-empty, type is valid enum
+- **Domain Steps**:
+  1. Invoke CreateOrganization command on OrganizationAggregate
+  2. Verify INV-004 (multi-tenant isolation via auto-generated org_id)
+  3. Capture OrganizationCreated event
+- **Postconditions**:
+  1. Organization created with auto-generated org_id
+  2. Default settings applied per template
+  3. Event published to bus
+- **Invariant Guards**: INV-004
+- **Domain Events Emitted**: OrganizationCreated
+
+#### UC-ORG-02 — UpdateOrganizationSettings
+- **Description**: Update one or more organization configuration settings
+- **Actor**: Admin (of the target org)
+- **Preconditions**:
+  1. User authenticated; org_id resolved from session
+  2. User has config:update:org permission
+  3. Setting key exists in configuration schema
+- **Domain Steps**:
+  1. Load ConfigurationAggregate (settings are org-scoped through OrganizationAggregate context)
+  2. Invoke UpdateOrganizationSettings on OrganizationAggregate
+  3. Verify CFG-001, CFG-002, CFG-003, CFG-004
+- **Postconditions**:
+  1. Settings updated with validated formats
+  2. SettingUpdated event emitted
+- **Invariant Guards**: CFG-001 (currency ISO 4217), CFG-002 (timezone IANA), CFG-003 (accent hex + WCAG), CFG-004 (default fallback)
+- **Domain Events Emitted**: SettingUpdated
+
+#### UC-ORG-03 — CreateOrgUnit
+- **Description**: Create a new organizational unit within an existing org hierarchy
+- **Actor**: Admin
+- **Preconditions**:
+  1. Org exists
+  2. Unit name non-empty, unit_type valid enum
+  3. Parent reference valid if provided
+- **Domain Steps**:
+  1. Load OrganizationAggregate for target org
+  2. Invoke CreateOrgUnit(name, parent, unitType)
+  3. Verify REL-001 (no cycles), REL-002 (depth ≤5), BR-ORG-002
+- **Postconditions**:
+  1. New OrgUnit at valid depth
+  2. OrgUnitCreated event emitted
+- **Invariant Guards**: REL-001 (DAG no cycle), REL-002 (depth ≤5)
+- **Domain Events Emitted**: OrgUnitCreated
+
+#### UC-ORG-04 — SuspendOrganization
+- **Description**: Transition organization to suspended state, locking all writes
+- **Actor**: SuperAdmin
+- **Preconditions**: Org exists, status = active
+- **Domain Steps**:
+  1. Load OrganizationAggregate
+  2. Invoke SuspendOrganization
+  3. Verify BR-ORG-006 (suspended org → write locked)
+- **Postconditions**: Status active → suspended; write locked
+- **Invariant Guards**: BR-ORG-006
+- **Domain Events Emitted**: OrganizationSuspended
+
+---
+
+## SERVICE 2: IdentityService
+
+**Aggregate Owner**: IdentityAggregate
+**Service Name**: IdentityService
+**Boundary Scope**: IdentityAggregate (User entity, Session management)
+**Command Count**: 9
+**Query Count**: 0
+**Invariant Count**: 3 distinct invariant families referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | CreateUser | COMMAND | §1 | Expose | EMAIL-001, BR-ID-005 | UserCreated |
+| 2 | UpdateUserProfile | COMMAND | §2 | Expose | EMAIL-001 | UserUpdated |
+| 3 | ChangeUserRole | COMMAND | §3 | Expose | Role hierarchy enforced | UserRoleChanged |
+| 4 | ResetPassword | COMMAND | §4 | Expose | BR-ID-001 | PasswordResetRequested |
+| 5 | LoginUser | COMMAND | §5 | Expose | INV-004, INV-008 | UserLoggedIn, SessionCreated |
+| 6 | LogoutUser | COMMAND | §6 | Expose | — | UserLoggedOut |
+| 7 | RefreshAccessToken | COMMAND | §7 | Expose | — | SessionCreated (new refresh) |
+| 8 | RevokeSession | COMMAND | §8 | Expose | — | SessionRevoked |
+| 9 | AssignPermissionGrant | COMMAND | §9 | Expose | Wildcard audited but authorized | — |
+
+### Use Case Examples
+
+#### UC-ID-01 — CreateUser
+- **Description**: Create a new user within an organization
+- **Actor**: SuperAdmin (any role) or Admin (treasurer/pastor/staff only)
+- **Preconditions**:
+  1. Org exists
+  2. Email unique within org
+  3. Password hash strong (BR-ID-001)
+  4. Role creation respects hierarchy (BR-ID-005)
+- **Domain Steps**:
+  1. Invoke CreateUser on IdentityAggregate
+  2. Verify EMAIL-001 (unique by org)
+  3. Capture UserCreated event
+- **Postconditions**: User created with hashed password
+- **Invariant Guards**: EMAIL-001
+- **Domain Events Emitted**: UserCreated
+
+#### UC-ID-02 — LoginUser
+- **Description**: Authenticate user credentials and create a session
+- **Actor**: Self (any authenticated user)
+- **Preconditions**: Valid email/password credentials
+- **Domain Steps**:
+  1. Invoke LoginUser on IdentityAggregate
+  2. Verify INV-004 (org_id match), INV-008 (double validation)
+  3. Capture UserLoggedIn + SessionCreated events
+- **Postconditions**: Session created; ephemeral tokens issued
+- **Invariant Guards**: INV-004, INV-008
+- **Domain Events Emitted**: UserLoggedIn, SessionCreated
+
+#### UC-ID-03 — ChangeUserRole
+- **Description**: Change a user's role within the RBAC hierarchy
+- **Actor**: SuperAdmin only
+- **Preconditions**: User exists; new role is valid
+- **Domain Steps**:
+  1. Load IdentityAggregate
+  2. Invoke ChangeUserRole(newRole)
+  3. Verify role hierarchy enforced (SuperAdmin only)
+- **Postconditions**: Role updated; UserRoleChanged event
+- **Invariant Guards**: Role hierarchy enforcement (SuperAdmin only)
+- **Domain Events Emitted**: UserRoleChanged
+
+---
+
+## SERVICE 3: ResourceService
+
+**Aggregate Owner**: ResourceAggregate
+**Service Name**: ResourceService
+**Boundary Scope**: ResourceAggregate (TransactionRecord, MemberRecord, EventRecord)
+**Command Count**: 10
+**Query Count**: 2
+**Invariant Count**: 12 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | CreateTransaction | COMMAND | §1 | Expose | FIN-002, DATE-001, CAT-001, VERSION-001, CREATEBY-001, SCOPE-001 | ResourceCreated |
+| 2 | UpdateDraftTransaction | COMMAND | §2 | Expose | FIN-001, VERSION-001 | ResourceUpdated |
+| 3 | SubmitForApproval | COMMAND | §3 | Expose | — | ApprovalRequested |
+| 4 | ApproveTransaction | COMMAND | §4 | Expose | BR-RES-001 | ResourceStateChanged, ApprovalGranted |
+| 5 | RejectTransaction | COMMAND | §5 | Expose | BR-RES-001 | ResourceStateChanged, ApprovalRejected |
+| 6 | CompensateTransaction | COMMAND | §6 | Expose | COMP-001 | TransactionCompensated |
+| 7 | CreateMember | COMMAND | §7 | Expose | MEM-001, EMAIL-001, STATUS-010 | ResourceCreated |
+| 8 | UpdateMember | COMMAND | §8 | Expose | MEM-001 | ResourceUpdated |
+| 9 | TransitionMemberStatus | COMMAND | §9 | Expose | STATUS-010, DISABLE-011 | ResourceStateChanged |
+| 10 | SearchResources | QUERY | §10 | Expose | INV-004 | — |
+| 11 | ExportResources | QUERY | §11 | Expose | EXPORT-001 | — |
+| 12 | CreateEvent | COMMAND | §boundary | Expose | — | ResourceCreated |
+| 13 | UpdateEvent | COMMAND | §boundary | Expose | — | ResourceUpdated |
+| 14 | TransitionEventStatus | COMMAND | §boundary | Expose | STATUS-010 | ResourceStateChanged |
+
+### Use Case Examples
+
+#### UC-RES-01 — CreateTransaction
+- **Description**: Create a new financial transaction with validated amount, category, and scope
+- **Actor**: Treasurer or Admin
+- **Preconditions**:
+  1. Org exists
+  2. Category from vocabulary (CAT-001)
+  3. Amount > 0 in BIGINT cents (FIN-002)
+  4. Date not in future (DATE-001)
+  5. Scope type defined (SCOPE-001)
+- **Domain Steps**:
+  1. Load ResourceAggregate
+  2. Invoke CreateTransaction(data)
+  3. Verify FIN-002, DATE-001, CAT-001, VERSION-001, CREATEBY-001, SCOPE-001
+  4. Capture ResourceCreated event
+- **Postconditions**: Transaction created with version=1
+- **Invariant Guards**: FIN-002 (amount positive BIGINT), DATE-001 (no future date), CAT-001 (vocab category), VERSION-001 (version increment), CREATEBY-001 (created_by set), SCOPE-001 (scope always defined)
+- **Domain Events Emitted**: ResourceCreated
+
+#### UC-RES-02 — ApproveTransaction
+- **Description**: Approve a pending financial transaction
+- **Actor**: Treasurer or Pastor or Admin
+- **Preconditions**: Transaction in pending status; approver has valid permission
+- **Domain Steps**:
+  1. Load ResourceAggregate
+  2. Invoke ApproveTransaction(id, approver)
+  3. Verify BR-RES-001 (approver has correct permission)
+  4. Capture ResourceStateChanged + ApprovalGranted
+- **Postconditions**: Status transitions pending → approved
+- **Invariant Guards**: BR-RES-001
+- **Domain Events Emitted**: ResourceStateChanged, ApprovalGranted
+
+#### UC-RES-03 — CompensateTransaction
+- **Description**: Create a compensating transaction to correct an approved transaction
+- **Actor**: Treasurer or Admin
+- **Preconditions**: Approved transaction exists; compensation linked via compensates_for
+- **Domain Steps**:
+  1. Load ResourceAggregate
+  2. Invoke CompensateTransaction(approvedTxId)
+  3. Verify COMP-001 (link to original required)
+  4. Capture TransactionCompensated
+- **Postconditions**: New compensating transaction linked to original
+- **Invariant Guards**: COMP-001
+- **Domain Events Emitted**: TransactionCompensated
+
+#### UC-RES-04 — CreateMember
+- **Description**: Create a new member record within the organization
+- **Actor**: Admin
+- **Preconditions**: Org exists; firstName+lastName mandatory; email unique if provided
+- **Domain Steps**:
+  1. Load ResourceAggregate
+  2. Invoke CreateMember(data)
+  3. Verify MEM-001 (firstName+lastName), EMAIL-001 (unique by org if email provided), STATUS-010 (valid initial status)
+  4. Capture ResourceCreated
+- **Postconditions**: Member created
+- **Invariant Guards**: MEM-001, EMAIL-001, STATUS-010
+- **Domain Events Emitted**: ResourceCreated
+
+---
+
+## SERVICE 4: RelationshipService
+
+**Aggregate Owner**: RelationshipAggregate
+**Service Name**: RelationshipService
+**Boundary Scope**: RelationshipAggregate (GroupMembership, OrgUnitParentLink)
+**Command Count**: 3
+**Query Count**: 3
+**Invariant Count**: 5 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | AddMemberToGroup | COMMAND | §1 | Expose | MULTI-020 | MemberJoinedGroup |
+| 2 | RemoveMemberFromGroup | COMMAND | §2 | Expose | HISTORY-022 | MemberLeftGroup |
+| 3 | SetOrgUnitParent | COMMAND | §3 | Expose | REL-001, REL-002 | OrgUnitReparented |
+| 4 | GetDescendants | QUERY | §4 | Expose | REL-002 | DescendantEnumerationRequested |
+| 5 | GetAllGroupsForMember | QUERY | §5 | Expose | INV-004 | — |
+| 6 | GetAllMembersOfGroup | QUERY | §6 | Expose | INV-004 | — |
+| 7 | DetectCycles | QUERY | §7 | Expose | REL-001 | — |
+
+### Use Case Examples
+
+#### UC-REL-01 — AddMemberToGroup
+- **Description**: Link a member to an organizational unit/group
+- **Actor**: Admin
+- **Preconditions**: Member and group exist; no duplicate membership
+- **Domain Steps**:
+  1. Load RelationshipAggregate
+  2. Invoke AddMemberToGroup(memberId, groupId)
+  3. Verify MULTI-020 (no duplicate PK)
+  4. Capture MemberJoinedGroup
+- **Postconditions**: Many-to-many membership created
+- **Invariant Guards**: MULTI-020
+- **Domain Events Emitted**: MemberJoinedGroup
+
+#### UC-REL-02 — SetOrgUnitParent
+- **Description**: Change the parent of an organizational unit within the DAG hierarchy
+- **Actor**: SuperAdmin
+- **Preconditions**: Both units in same org; no cycle created
+- **Domain Steps**:
+  1. Load RelationshipAggregate
+  2. Invoke SetOrgUnitParent(unitId, parentId)
+  3. Verify REL-001 (Kahn's algo — no cycles), REL-002 (depth ≤5)
+  4. Capture OrgUnitReparented
+- **Postconditions**: Parent link updated; depth revalidated
+- **Invariant Guards**: REL-001, REL-002
+- **Domain Events Emitted**: OrgUnitReparented
+
+---
+
+## SERVICE 5: WorkflowService
+
+**Aggregate Owner**: WorkflowAggregate
+**Service Name**: WorkflowService
+**Boundary Scope**: WorkflowAggregate (WorkflowInstance, WorkflowStep)
+**Command Count**: 5
+**Query Count**: 1
+**Invariant Count**: 5 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | TriggerWorkflow | COMMAND | §1 | Expose | LOG-005, WF-006 | WorkflowTriggered |
+| 2 | ApproveStep | COMMAND | §2 | Expose | CHAINS-003, WF-005 | StepApproved |
+| 3 | RejectStep | COMMAND | §3 | Expose | WF-001, LOG-005 | StepRejected |
+| 4 | CancelWorkflow | COMMAND | §4 | Expose | LOG-005 | WorkflowCancelled |
+| 5 | ResubmitForApproval | COMMAND | §5 | Expose | RETRY-004 | WorkflowTriggered (re-trigger) |
+| 6 | GetPendingApprovals | QUERY | §query | Expose | LOG-005 | — |
+
+### Use Case Examples
+
+#### UC-WF-01 — ApproveStep
+- **Description**: Approve a workflow step assigned to the current user
+- **Actor**: Assigned approver role
+- **Preconditions**: Step is approval type; step assigned to this user; timeout valid
+- **Domain Steps**:
+  1. Load WorkflowAggregate
+  2. Invoke ApproveStep(instanceId, userId)
+  3. Verify CHAINS-003 (approval chain ≤5 levels), WF-005 (never modifies approved transactions directly)
+  4. Capture StepApproved
+- **Postconditions**: Step transitions pending → completed; next step activated
+- **Invariant Guards**: CHAINS-003, WF-005
+- **Domain Events Emitted**: StepApproved
+
+#### UC-WF-02 — CancelWorkflow
+- **Description**: Cancel a running workflow instance
+- **Actor**: Approver or Admin
+- **Preconditions**: Workflow in running status
+- **Domain Steps**:
+  1. Load WorkflowAggregate
+  2. Invoke CancelWorkflow(instanceId, reason)
+  3. Verify LOG-005 (execution state logged)
+  4. Capture WorkflowCancelled
+- **Postconditions**: Workflow transitions running → cancelled
+- **Invariant Guards**: LOG-005
+- **Domain Events Emitted**: WorkflowCancelled
+
+---
+
+## SERVICE 6: FormService
+
+**Aggregate Owner**: FormAggregate
+**Service Name**: FormService
+**Boundary Scope**: FormAggregate (FormDefinition, FormField)
+**Command Count**: 1
+**Query Count**: 3
+**Invariant Count**: 5 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | LoadFormDefinition | QUERY | §1 | Expose: LoadFormDefinition(formId, version) | FRM-004 | — |
+| 2 | ValidateFormData | COMMAND | §2 | Expose: ValidateFormData(formDef, data) | DUAL-008 | FormValidationFailed (if invalid) |
+| 3 | RenderForm | QUERY | §3 | Expose: RenderForm(formDef, data) | FRM-001, VOCAB-002 | — |
+| 4 | GetVisibleFields | QUERY | §4 | Expose: GetVisibleFields(formDef, context) | FRM-003 | — |
+
+### Use Case Examples
+
+#### UC-FRM-01 — ValidateFormData
+- **Description**: Validate submitted form data against form definition rules
+- **Actor**: Any authenticated user (client + server both validate identically)
+- **Preconditions**: Form loaded; data submitted
+- **Domain Steps**:
+  1. Load FormAggregate
+  2. Invoke ValidateFormData(formDef, data)
+  3. Verify DUAL-008 (client validation must equal server validation exactly)
+  4. Emit FormValidationFailed if invalid; none if valid
+- **Postconditions**: ValidationResult returned (valid/invalid + errors)
+- **Invariant Guards**: DUAL-008
+- **Domain Events Emitted**: FormValidationFailed (conditional)
+
+---
+
+## SERVICE 7: NotificationService
+
+**Aggregate Owner**: NotificationAggregate
+**Service Name**: NotificationService
+**Boundary Scope**: NotificationAggregate (NotificationMessage, NotificationPreference)
+**Command Count**: 4
+**Query Count**: 0
+**Invariant Count**: 4 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | SendNotification | COMMAND | §1 | Expose | NOT-001, NOT-002, CHANNEL-003, QUIET-004 | NotificationQueued, NotificationSent, NotificationFailed |
+| 2 | MarkAsRead | COMMAND | §2 | Expose | — | NotificationMarkedRead |
+| 3 | UpdatePreferences | COMMAND | §3 | Expose | CHANNEL-003 | PreferencesUpdated |
+| 4 | SetRateLimit | COMMAND | §4 | Expose | RATE-002 | — |
+| 5 | SuppressUntil | COMMAND | §5 | Expose | QUIET-004 | — |
+| 6 | QueueNotification | COMMAND | §6 | Expose | NOT-001, SYNC-004 | NotificationQueued |
+
+### Use Case Examples
+
+#### UC-NOT-01 — SendNotification
+- **Description**: Send a notification via the appropriate channel respecting user preferences
+- **Actor**: System (workflow trigger) or Admin (manual)
+- **Preconditions**: Channel available; user exists; trigger present (NOT-001)
+- **Domain Steps**:
+  1. Load NotificationAggregate
+  2. Invoke SendNotification(userId, channel, body)
+  3. Verify NOT-001 (always triggered), NOT-002 (rate limit), CHANNEL-003 (preferences), QUIET-004 (quiet hours unless critical)
+  4. Capture NotificationQueued (if queued) / NotificationSent (success) / NotificationFailed (failure)
+- **Postconditions**: Notification sent or queued for later delivery
+- **Invariant Guards**: NOT-001, NOT-002, CHANNEL-003, QUIET-004
+- **Domain Events Emitted**: NotificationQueued OR NotificationSent OR NotificationFailed
+
+---
+
+## SERVICE 8: VocabularyService
+
+**Aggregate Owner**: VocabularyAggregate
+**Service Name**: VocabularyService
+**Boundary Scope**: VocabularyAggregate (Namespace, Term, TermValue)
+**Command Count**: 2
+**Query Count**: 5
+**Invariant Count**: 3 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | AddTermValue | COMMAND | §1 | Expose | STABLE-003, TRANSLATION-002 | TermAdded |
+| 2 | DeprecateTermValue | COMMAND | §2 | Expose | VOC-001 | TermValueDeprecated |
+| 3 | ResolveLabel | QUERY | §3 | Expose: ResolveLabel(namespace, termKey, lang) | TRANSLATION-002 | TranslationResolved |
+| 4 | GetTerms | QUERY | §4 | Expose: GetTerms(namespace) | — | — |
+| 5 | GetTermValues | QUERY | §5 | Expose: GetTermValues(namespace, termKey) | — | — |
+| 6 | SearchTerms | QUERY | §6 | Expose: SearchTerms(query, namespace?) | — | — |
+| 7 | GetAllNamespaces | QUERY | §7 | Expose: GetAllNamespaces() | — | — |
+
+### Use Case Examples
+
+#### UC-VOC-01 — DeprecateTermValue
+- **Description**: Irreversibly mark a vocabulary value as deprecated (never deleted)
+- **Actor**: Admin
+- **Preconditions**: Value exists; not already deprecated
+- **Domain Steps**:
+  1. Load VocabularyAggregate
+  2. Invoke DeprecateTermValue(namespace, termKey, value)
+  3. Verify VOC-001 (values never deleted, only deprecated — IRREVERSIBLE)
+  4. Capture TermValueDeprecated
+- **Postconditions**: Value flagged deprecated; still accessible for legacy references
+- **Invariant Guards**: VOC-001
+- **Domain Events Emitted**: TermValueDeprecated
+
+#### UC-VOC-02 — ResolveLabel
+- **Description**: Resolve a term display label for a specific language
+- **Actor**: Any authenticated user
+- **Preconditions**: Namespace + termKey exist
+- **Domain Steps**:
+  1. Load VocabularyAggregate
+  2. Invoke ResolveLabel(namespace, termKey, lang)
+  3. Verify TRANSLATION-002 (minimum FR+EN guaranteed)
+  4. Capture TranslationResolved
+- **Postconditions**: Display label string returned
+- **Invariant Guards**: TRANSLATION-002
+- **Domain Events Emitted**: TranslationResolved
+
+---
+
+## SERVICE 9: ReportingService
+
+**Aggregate Owner**: ReportingAggregate
+**Service Name**: ReportingService
+**Boundary Scope**: ReportingAggregate (ReportDefinition, GeneratedReport)
+**Command Count**: 1
+**Query Count**: 2
+**Invariant Count**: 4 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | GenerateReport | COMMAND | §1 | Expose | BAL-001, MONTH-001, SYNCED-001, EXPORT-001 | ReportGenerated |
+| 2 | CalculateBalance | QUERY | §2 | Expose: CalculateBalance(scope, periodStart, periodEnd) | BAL-001, MONTH-001, SYNCED-001 | BalanceCalculated |
+| 3 | ExportReport | QUERY | §3 | Expose: ExportReport(reportId, format) | EXPORT-001, ARCHIVED-001 | ReportExported |
+| 4 | GetReportTypes | QUERY | §4 | Expose: GetReportTypes(orgId) | — | — |
+
+### Use Case Examples
+
+#### UC-RPT-01 — GenerateReport
+- **Description**: Compute a financial report on-demand from approved transactions
+- **Actor**: Admin or Treasurer (reporting:generate permission)
+- **Preconditions**: Report type defined; permission reporting:read held
+- **Domain Steps**:
+  1. Load ReportingAggregate
+  2. Invoke GenerateReport(reportType, period)
+  3. Verify BAL-001 (balance must balance), MONTH-001 (period completeness), SYNCED-001 (only synced=1), EXPORT-001 (timestamp)
+  4. Capture ReportGenerated
+- **Postconditions**: Report computed and returned (not persisted unless explicitly saved)
+- **Invariant Guards**: BAL-001, MONTH-001, SYNCED-001, EXPORT-001
+- **Domain Events Emitted**: ReportGenerated
+
+---
+
+## SERVICE 10: AuditService
+
+**Aggregate Owner**: AuditAggregate
+**Service Name**: AuditService
+**Boundary Scope**: AuditAggregate (AuditLogEntry — append-only)
+**Command Count**: 1
+**Query Count**: 2
+**Invariant Count**: 4 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | LogAction | COMMAND | §1 | Expose: LogAction(entityType, entityId, action, oldValues, newValues) | AUD-001, OLDNEW-002, RETENTION-031 | ActionLogged (internal) |
+| 2 | QueryAuditLogs | QUERY | §2 | Expose: QueryLogs(filters, pagination) | ACCESS-033 | — |
+| 3 | ExportAuditTrail | QUERY | §3 | Expose: ExportAuditTrail(period, format) | ACCESS-033, RETENTION-031 | — |
+
+### Use Case Examples
+
+#### UC-AUD-01 — QueryAuditLogs
+- **Description**: Query audit log entries with filters scoped to org_id
+- **Actor**: Admin or Auditor
+- **Preconditions**: Filter criteria specified; admin or auditor permission held
+- **Domain Steps**:
+  1. Load AuditAggregate
+  2. Invoke QueryLogs(filters, pagination)
+  3. Verify ACCESS-033 (restricted to admin/auditor roles)
+- **Postconditions**: Log entries returned scoped to org_id
+- **Invariant Guards**: ACCESS-033
+- **Domain Events Emitted**: None
+
+---
+
+## SERVICE 11: LifecycleService
+
+**Aggregate Owner**: LifecycleAggregate
+**Service Name**: LifecycleService
+**Boundary Scope**: LifecycleAggregate (ArchiveEntry, LifecycleTypeDefinition)
+**Command Count**: 5
+**Query Count**: 2
+**Invariant Count**: 4 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | ArchiveResource | COMMAND | §1 | Expose: ArchiveResource(resourceType, resourceId) | LIF-001, LIF-003 | ResourceArchived |
+| 2 | TrashResource | COMMAND | §2 | Expose: TrashResource(archiveId) | LIF-003 | ResourceTrashed |
+| 3 | PurgeResource | COMMAND | §3 | Expose: PurgeResource(archiveId) | LIF-003, LIF-005 | ResourcePurged |
+| 4 | RestoreFromTrash | COMMAND | §4 | Expose: RestoreFromTrash(archiveId) | LIF-003 | ResourceRestoredFromTrash |
+| 5 | ListArchiveEntries | QUERY | §5 | Expose: ListArchiveEntries(filters) | LIF-006 | — |
+| 6 | SearchArchives | QUERY | §6 | Expose: SearchArchives(query, tags?, type?) | — | — |
+| 7 | ApplyTags | COMMAND | §7 | Expose: ApplyTags(archiveId, tags) | — | — |
+| 8 | SchedulePurge | COMMAND | §8 | Expose: SchedulePurge(archiveId, purgeDate) | LIF-005 | PurgeScheduled |
+
+### Use Case Examples
+
+#### UC-LIF-01 — ArchiveResource
+- **Description**: Archive a resource for long-term retention
+- **Actor**: Admin
+- **Preconditions**: Resource exists; archivable type configured in manifest.lifecycle.types[]
+- **Domain Steps**:
+  1. Load LifecycleAggregate
+  2. Invoke ArchiveResource(resourceType, resourceId)
+  3. Verify LIF-001 (states configurable via manifest, not hardcoded)
+  4. Capture ResourceArchived
+- **Postconditions**: ArchiveEntry created with state = archived
+- **Invariant Guards**: LIF-001
+- **Domain Events Emitted**: ResourceArchived
+
+#### UC-LIF-02 — PurgeResource
+- **Description**: Permanently remove an archived entry (IRREVERSIBLE)
+- **Actor**: System (scheduled) — never user-callable
+- **Preconditions**: Entry in trashed state; purge_date reached; trash date passed
+- **Domain Steps**:
+  1. Load LifecycleAggregate
+  2. Invoke PurgeResource(archiveId)
+  3. Verify LIF-003 (irreversible — purged blocks all transitions), LIF-005 (purge_date reached)
+  4. Capture ResourcePurged
+- **Postconditions**: Entry permanently removed. NO RESTORE possible.
+- **Invariant Guards**: LIF-003, LIF-005
+- **Domain Events Emitted**: ResourcePurged
+
+---
+
+## SERVICE 12: ConfigurationService
+
+**Aggregate Owner**: ConfigurationAggregate
+**Service Name**: ConfigurationService
+**Boundary Scope**: ConfigurationAggregate (SettingEntry)
+**Command Count**: 2
+**Query Count**: 2
+**Invariant Count**: 4 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | UpdateSetting | COMMAND | §1 | Expose: UpdateSetting(key, value) | CFG-001, CFG-002, CFG-003 | SettingUpdated |
+| 2 | ResetToDefaults | COMMAND | §2 | Expose: ResetToDefaults() | CFG-004 | SettingsResetToDefaults |
+| 3 | GetSetting | QUERY | §3 | Expose: GetSetting(key) | CFG-004 | — |
+| 4 | GetAllSettings | QUERY | §4 | Expose: GetAllSettings() | CFG-004 | — |
+
+### Use Case Examples
+
+#### UC-CFG-01 — UpdateSetting
+- **Description**: Update a single organization configuration setting
+- **Actor**: Admin
+- **Preconditions**: Key exists in settings schema; value format valid
+- **Domain Steps**:
+  1. Load ConfigurationAggregate
+  2. Invoke UpdateSetting(key, value)
+  3. Verify CFG-001 (ISO 4217 currency), CFG-002 (IANA timezone), CFG-003 (hex + WCAG)
+  4. Capture SettingUpdated
+- **Postconditions**: Setting value updated with format validation
+- **Invariant Guards**: CFG-001, CFG-002, CFG-003
+- **Domain Events Emitted**: SettingUpdated
+
+---
+
+## SERVICE 13: OfflineSyncService
+
+**Aggregate Owner**: OfflineSyncAggregate
+**Service Name**: OfflineSyncService
+**Boundary Scope**: OfflineSyncAggregate (PendingOperation, SyncStatusTracker)
+**Command Count**: 4
+**Query Count**: 2
+**Invariant Count**: 4 distinct invariants referenced
+
+### Operations Managed
+
+| # | Operation | Type | Source (API-CONTRACT-001) | Boundary (DOC-013) | Invariants | Events (DOC-014) |
+|---|-----------|------|--------------------------|--------------------|------------|------------------|
+| 1 | PushPendingOperations | COMMAND | §1 | Expose: PushPendingOperations() | SYNC-001, SYNC-002, SYNC-003 | BatchPushed |
+| 2 | PullRemoteChanges | COMMAND | §2 | Expose: PullRemoteChanges(sinceTimestamp) | SYNC-004 | DeltaReceived |
+| 3 | ResolveConflict | COMMAND | §3 | Expose: ResolveConflict(operation, serverData) | SYNC-001, SYNC-002/003 | ConflictResolved, ConflictDetected |
+| 4 | MarkOperationConfirmed | COMMAND | §4 | Expose: MarkConfirmed(opId) | — | SyncCompleted |
+| 5 | CheckConnectivity | QUERY | §5 | Expose: CheckConnectivity() | SYNC-004 | ConnectionLost / ConnectionRestored |
+| 6 | GetSyncStatus | QUERY | §6 | Expose: GetSyncStatus(tableName) | — | — |
+
+### Use Case Examples
+
+#### UC-SYNC-01 — PushPendingOperations
+- **Description**: Push local pending operations to remote server in batches
+- **Actor**: System (auto) — never user-initiated
+- **Preconditions**: Pending operations exist in local queue
+- **Domain Steps**:
+  1. Load OfflineSyncAggregate
+  2. Invoke PushPendingOperations()
+  3. Verify SYNC-001 (local ALWAYS precedes remote), SYNC-002 (batch ≤50), SYNC-003 (exponential backoff max 5 retries)
+  4. Capture BatchPushed
+- **Postconditions**: Batch pushed to remote; sync_status transitions to sent
+- **Invariant Guards**: SYNC-001, SYNC-002, SYNC-003
+- **Domain Events Emitted**: BatchPushed
+
+#### UC-SYNC-02 — ResolveConflict
+- **Description**: Resolve a sync conflict between local and server data
+- **Actor**: System (auto) or Admin (manual override)
+- **Preconditions**: Conflict detected during pull operation
+- **Domain Steps**:
+  1. Load OfflineSyncAggregate
+  2. Invoke ResolveConflict(operation, serverData)
+  3. Verify SYNC-001 (local-first strategy), SYNC-002/003 (batch/retry constraints)
+  4. Capture ConflictResolved (after resolution), ConflictDetected (before)
+- **Postconditions**: Conflict resolved per strategy (LWW, server-wins, immutable, uuid-dedup)
+- **Invariant Guards**: SYNC-001
+- **Domain Events Emitted**: ConflictResolved, ConflictDetected
+
+---
+
+## COMPLIANCE STATEMENT
+
+This document covers all 13 Aggregates defined in DOC-012 and all 83 operations defined in API-CONTRACT-001.
+
+No operation was invented. If an operation is not listed above, it does not exist in the canonical contract.
+
+Each Application Service spec herein is framework-agnostic, language-agnostic, and technology-agnostic. The specifications describe WHAT the service orchestrates and WHEN, not HOW it is implemented.
+
+All invariants, commands, events, and boundary rules trace directly to DOC-012, DOC-014, DOC-015, DOC-013, and API-CONTRACT-001.

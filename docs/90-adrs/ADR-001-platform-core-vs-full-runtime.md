@@ -19,11 +19,11 @@ Cependant, l'analyse a révélé que :
 
 ## 2. Questions
 
-Doit-on implémenter un runtime organisationnel complet (20+ moteurs) ou un Platform Core léger (5 moteurs) ?
+Doit-on implémenter un runtime organisationnel complet (20+ capacités) ou des Platform Capabilities légères (5 capacités) ?
 
 ## 3. Décision
 
-Nous adoptons le **Platform Core (Lightweight Runtime)** avec exactement **5 moteurs configurables** :
+Nous adoptons le **Platform Capabilities (Lightweight Runtime)** avec exactement **5 capacités configurables** :
 
 | Moteur | Rôle | Type |
 |---|---|---|
@@ -45,7 +45,7 @@ Nous adoptons le **Platform Core (Lightweight Runtime)** avec exactement **5 mot
 - **Avantages :** Simplicité maximale, développement rapide
 - **Inconvénients :** Zéro agnosticisme, chaque nouveau type d'organisation nécessite un fork du code, non maintenable
 
-### Alternative C : Platform Core (Choix Retenu)
+### Alternative C : Platform Capabilities (Choix Retenu)
 - **Avantages :** Agnosticisme réel pour les cas courants, risque maîtrisé, MVP livrable, extensible via capabilities
 - **Inconvénients :** Ne couvre PAS tous les cas d'usage (certuns cas très spécifiques nécessiteront du code custom)
 
@@ -60,7 +60,7 @@ Nous adoptons le **Platform Core (Lightweight Runtime)** avec exactement **5 mot
 
 ### Négatives (et mitigations)
 - ⚠️ Certains cas d'usage très spécifiques ne seront pas couverts → **Mitigation :** Les capabilities natives peuvent être ajoutées
-- ⚠️ Risque que le Platform Core soit insuffisant à grande échelle → **Mitigation :** Réévaluation à v3.0 si 50+ organisations actives
+- ⚠️ Risque que les Platform Capabilities soient insuffisantes à grande échelle → **Mitigation :** Réévaluation à v3.0 si 50+ organisations actives
 
 ## 6. Critères de Révision
 

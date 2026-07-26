@@ -25,7 +25,7 @@ Comment structurer la documentation technique pour qu'elle soit optimale pour un
 
 ```
 docs/
-├── 01-platform-core/          ← Moteurs du Platform Core
+├── 01-platform-core/          ← Capacités du Platform
 │   ├── index.md               ← Vue d'ensemble (2 pages)
 │   ├── manifest-engine/
 │   │   └── index.md           ← Spécification complète (8 pages max)

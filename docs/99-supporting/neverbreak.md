@@ -20,7 +20,7 @@ Les **NeverBreak Rules** sont des contraintes architecturales qui, si violées, 
 → Si dépassé : diviser le document en sous-documents + index.
 
 ### NB-RULE-02 : Dépendances Cycliques Inter-Moteurs
-**AUCUN cycle de dépendance n'existe entre les moteurs du Platform Core.**  
+**AUCUN cycle de dépendance n'existe entre les capacités des Platform Capabilities.**  
 Le graphe de dépendances doit être un DAG (Directed Acyclic Graph) :
 ```
 Manifest ← Vocab ← Forms
