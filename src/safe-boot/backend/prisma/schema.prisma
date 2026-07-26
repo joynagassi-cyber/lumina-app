@@ -1,0 +1,242 @@
+// Lumina Prisma Schema Skeleton — v1.0.0
+// Source canonique: POSTGRESQL-SCHEMA-PACK-v1.md (32 tables)
+// This is a SKELETON — all models will be fleshed out during Implementation Phase.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ORGANIZATION AGGREGATE
+// ============================================================
+
+model Organization {
+  id              String   @id @default(uuid()) @db.Uuid
+  org_id          String   @unique @map("org_id") @db.Uuid
+  nom             String   @map("nom") @db.VarChar(255)
+  nom_court       String?  @map("nom_court") @db.VarChar(100)
+  type_org        String   @map("type_org") @db.VarChar(20)
+  statut          String   @map("statut") @db.VarChar(20) @default("active")
+  devise_iso4217  String   @map("devise_iso4217") @db.VarChar(3)
+  fuseau_horaire  String   @map("fuseau_horaire") @db.VarChar(100)
+  langue_privee   String   @map("langue_privee") @db.VarChar(10)
+  accent_hex      String   @map("accent_hex") @db.VarChar(7)
+  created_at      DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  version         Int      @map("version") @default(1)
+  synced_at       DateTime? @map("synced_at") @db.Timestamptz(6)
+  local_updated_at DateTime? @map("local_updated_at") @db.Timestamptz(6)
+
+  // Relations
+  org_units           OrgUnit[]
+  users               User[]
+  transactions        Transaction[]
+  members             Member[]
+  events              Event[]
+  categories          Category[]
+  notifications       Notification[]
+  vocab_namespaces    VocabNamespace[]
+  reports             Report[]
+  audit_entries       AuditEntry[]
+  archives            ArchiveEntry[]
+  pending_operations  PendingOperation[]
+  sync_statuses       SyncStatus[]
+  settings            Setting[]
+
+  @@map("organizations")
+}
+
+model OrgUnit {
+  id                       String  @id @default(uuid()) @db.Uuid
+  org_id                   String  @map("org_id") @db.Uuid
+  parent_id                String? @map("parent_id") @db.Uuid
+  nom                      String  @map("nom") @db.VarChar(255)
+  type_unite               String  @map("type_unite") @db.VarChar(50)
+  niveau_profondeur        Int     @map("niveau_profondeur")
+  chemin_hierarchique      String? @map("chemin_hierarchique") @db.VarChar(1000)
+  statut                   String  @map("statut") @db.VarChar(20) @default("active")
+  created_at               DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  version                  Int     @map("version") @default(1)
+  synced_at                DateTime? @map("synced_at") @db.Timestamptz(6)
+  local_updated_at         DateTime? @map("local_updated_at") @db.Timestamptz(6)
+
+  parent  OrgUnit       @relation("OrgUnitHierarchy", fields: [parent_id], references: [id])
+  children OrgUnit[]    @relation("OrgUnitHierarchy")
+  members Member[]
+
+  @@unique([org_id, nom])
+  @@index([org_id])
+  @@map("org_units")
+}
+
+// ============================================================
+// IDENTITY / AUTH AGGREGATE
+// ============================================================
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  org_id        String   @map("org_id") @db.Uuid
+  adresse_email String   @map("adresse_email") @db.VarChar(255)
+  prenom        String   @map("prenom") @db.VarChar(100)
+  nom_famille   String   @map("nom_famille") @db.VarChar(100)
+  role_utilisateur String @map("role_utilisateur") @db.VarChar(50)
+  statut        String   @map("statut") @db.VarChar(20) @default("active")
+  phone         String?  @db.VarChar(20)
+  avatar_url    String?  @map("avatar_url") @db.VarChar(500)
+  lang_preferree String? @map("lang_preferree") @db.VarChar(10)
+  timezone      String?  @db.VarChar(100)
+  is_active     Boolean  @map("is_active") @default(true)
+  last_login_at DateTime? @map("last_login_at") @db.Timestamptz(6)
+  created_at    DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  version       Int      @map("version") @default(1)
+  synced_at     DateTime? @map("synced_at") @db.Timestamptz(6)
+  local_updated_at DateTime? @map("local_updated_at") @db.Timestamptz(6)
+
+  sessions        Session[]
+  credentials     Credential[]
+  notifications   Notification[] @relation("NotificationRecipient")
+  organizations   Organization @relation(fields: [org_id], references: [org_id])
+  transactions_created Transaction[] @relation("TransactionCreatedBy")
+
+  @@unique([adresse_email, org_id])
+  @@index([org_id])
+  @@map("users")
+}
+
+model Session {
+  id                 String    @id @default(uuid()) @db.Uuid
+  user_id            String    @map("user_id") @db.Uuid
+  hachage_refresh_token String  @map("hachage_refresh_token") @db.Text
+  date_expiration    DateTime  @map("date_expiration") @db.Timestamptz(6)
+  est_active         Boolean   @map("est_active") @default(true)
+  informations_appareil Jsonb   @map("informations_appareil")
+  created_at         DateTime  @map("created_at") @default(now()) @db.Timestamptz(6)
+
+  user               User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("sessions")
+}
+
+model Credential {
+  id                 String   @id @default(uuid()) @db.Uuid
+  user_id            String   @map("user_id") @db.Uuid @unique
+  hachage_mot_de_passe String @map("hachage_mot_de_passe") @db.Text
+  mfa_secret         String?  @map("mfa_secret")
+  created_at         DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+
+  user               User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("credentials")
+}
+
+// ============================================================
+// FINANCE AGGREGATE (Resource)
+// ============================================================
+
+model Transaction {
+  id                  String   @id @default(uuid()) @db.Uuid
+  org_id              String   @map("org_id") @db.Uuid
+  montant             BigInt   @map("montant")
+  devise              String   @map("devise") @db.VarChar(10)
+  type_transaction    String   @map("type_transaction") @db.VarChar(50)
+  statut              String   @map("statut") @db.VarChar(20)
+  date_transaction    DateTime @map("date_transaction") @db.Date
+  description         String?  @map("description") @db.Text
+  reference_externe   String?  @map("reference_externe") @db.VarChar(255)
+  compense_pour       String?  @map("compense_pour") @db.Uuid
+  created_by          String?  @map("created_by") @db.Uuid
+  approuve_par        String?  @map("approuve_par") @db.Uuid
+  categorie_ref       String   @map("categorie_ref") @db.VarChar(255)
+  portee_type         String   @map("portee_type") @db.VarChar(20)
+  portee_cible_id     String?  @map("portee_cible_id") @db.Uuid
+  created_at          DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  version             Int      @map("version") @default(1)
+  synced_at           DateTime? @map("synced_at") @db.Timestamptz(6)
+  local_updated_at    DateTime? @map("local_updated_at") @db.Timestamptz(6)
+
+  org                 Organization @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
+  created_by_user     User?        @relation("TransactionCreatedBy", fields: [created_by], references: [id])
+  approuve_by_user    User?        @relation("TransactionApprovedBy", fields: [approuve_par], references: [id])
+  compense_pour_tx    Transaction? @relation("TransactionCompensation", fields: [compense_pour], references: [id])
+  compensations       Transaction[] @relation("TransactionCompensation")
+
+  @@index([org_id])
+  @@index([date_transaction])
+  @@map("transactions")
+}
+
+// ============================================================
+// SYNC / OFFLINE AGGREGATE
+// ============================================================
+
+model PendingOperation {
+  id            String   @id @default(uuid()) @db.Uuid
+  org_id        String   @map("org_id") @db.Uuid
+  resource_type String   @map("resource_type") @db.VarChar(50)
+  resource_id   String   @map("resource_id") @db.Uuid
+  action        String   @map("action") @db.VarChar(10)
+  payload       Jsonb    @map("payload")
+  statut_sync   String   @map("statut_sync") @db.VarChar(20) @default("pending")
+  tentative_num Int      @map("tentative_num") @default(0)
+  created_at    DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  error_msg     String?  @map("error_msg") @db.Text
+
+  @@index([org_id])
+  @@index([statut_sync])
+  @@map("pending_operations")
+}
+
+model SyncStatus {
+  id                    String    @id @default(uuid()) @db.Uuid
+  org_id                String    @map("org_id") @db.Uuid
+  table_reference       String    @map("table_reference") @db.VarChar(100)
+  derniere_synchro_timestamp DateTime? @map("derniere_synchro_timestamp") @db.Timestamptz(6)
+  etat_connection       String    @map("etat_connection") @db.VarChar(20) @default("offline")
+
+  @@unique([table_reference, org_id])
+  @@index([org_id])
+  @@map("sync_statuses")
+}
+
+// ============================================================
+// AUDIT AGGREGATE
+// ============================================================
+
+model AuditEntry {
+  id                 String    @id @default(uuid()) @db.Uuid
+  org_id             String    @map("org_id") @db.Uuid
+  sequence_log       BigInt    @map("sequence_log")
+  action_effectuee   String    @map("action_effectuee") @db.VarChar(50)
+  entite_type        String    @map("entite_type") @db.VarChar(255)
+  entite_id          String    @map("entite_id") @db.Uuid
+  utilisateur_id     String    @map("utilisateur_id") @db.Uuid
+  valeur_avant       Jsonb     @map("valeur_avant")
+  valeur_apres       Jsonb     @map("valeur_apres")
+  adresse_ip         String?   @map("adresse_ip") @db.VarChar(45)
+  date_heure_utc     DateTime  @map("date_heure_utc") @db.Timestamptz(6) @default(now())
+  duree_retention_annees Int   @map("duree_retention_annees") @default(7)
+
+  org                Organization @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
+
+  @@index([org_id])
+  @@index([entite_type, entite_id])
+  @@map("audit_entries")
+}
+
+// ============================================================
+// PLACEHOLDER: Remaining 25 tables (Organization, Finance,
+// Membership, Event, Group, Notification, Workflow, Form,
+// Vocabulary, Reporting, Lifecycle, Configuration, etc.)
+// Will be fleshed out in Implementation Phase per ITS-V1.
+// ============================================================

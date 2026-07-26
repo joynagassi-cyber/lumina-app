@@ -1,0 +1,22 @@
+{
+  "schema": "LIP-v1-detect-blockers",
+  "version": "1.0.0",
+  "timestamp": "2026-07-26T19:44:46.546Z",
+  "summary": {
+    "totalFilesScanned": 3,
+    "errorCount": 0,
+    "warningCount": 1,
+    "totalViolations": 1,
+    "status": "CLEAN"
+  },
+  "violations": [
+    {
+      "file": "C:\\Users\\joyda\\ZCodeProject\\lumina-app\\src\\safe-boot\\backend\\src\\main.ts",
+      "line": 51,
+      "pattern": "console.log(`Lumina Backend running on port ${port}`);",
+      "severity": "WARNING",
+      "rule": "NB-TECH-004 logging discipline",
+      "suggestion": "Use NestJS Logger service: \"private readonly logger = new Logger(ClassName)\""
+    }
+  ]
+}

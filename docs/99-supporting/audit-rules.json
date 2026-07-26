@@ -1,0 +1,222 @@
+{
+  "schema_version": "1.0",
+  "specification": "LIP-v1 Audit Rules - Lumina Implementation Program",
+  "date": "2026-07-26",
+  "canonical_sources": ["DOC-000", "DOC-004", "DOC-012", "DOC-015", "DOC-017", "DOC-023", "IGS-v1", "ARA-v1"],
+  "rules": [
+    {
+      "id": "LIP-AUDIT-001",
+      "category": "dependency-inversion",
+      "severity": "CRITICAL",
+      "description": "Domain modules must never import from infrastructure/ directly. All infrastructure dependencies must be resolved via port interfaces (Dependency Inversion per DOC-000 Rule 4 + DOC-004 PONT 12).",
+      "pattern": "import.*from ['\\\"].*infrastructure['\\\"]",
+      "scope": "src/safe-boot/backend/src/domains/**/*.ts",
+      "exception": "Port interface definitions (*.port.ts or *-ports.ts files within domains/*/ports/) are allowed.",
+      "source_docs": ["DOC-000 Regle 4", "DOC-004 PONT 12"]
+    },
+    {
+      "id": "LIP-AUDIT-002",
+      "category": "typing",
+      "severity": "CRITICAL",
+      "description": "No any type allowed per ITS-v1 NB-TECH-002 strict mode. All types must be explicitly defined.",
+      "pattern": ": any",
+      "scope": "src/safe-boot/backend/**/*.ts",
+      "exception": "None. This is a NeverBreak rule.",
+      "source_docs": ["ITS-v1 NB-TECH-002"]
+    },
+    {
+      "id": "LIP-AUDIT-003",
+      "category": "tenancy",
+      "severity": "CRITICAL",
+      "description": "Every database query (find, findAll, findOne, findByIds) must include org_id filter for multi-tenant isolation per DOC-023 Section 8 NB-MT-002.",
+      "check": "every find/query method in domain services must reference context.orgId or this.orgId for filtering",
+      "scope": "src/safe-boot/backend/src/domains/**/*.ts",
+      "exception": "Query methods on superadmin-only system tables may exclude org_id with inline comment explaining why.",
+      "source_docs": ["DOC-023 Section 8 NB-MT-002"]
+    },
+    {
+      "id": "LIP-AUDIT-004",
+      "category": "security",
+      "severity": "CRITICAL",
+      "description": "No hardcoded secrets, credentials, API keys, or tokens. Secrets come from Key Manager / environment variables only. Per SEC-SPEC-005 Section 2.4.",
+      "pattern": "(password|secret|api_key|token|apiKey|encryptionKey|PrivateKey)\\s*[:=]\\s*[\\x22\\x27][A-Za-z0-9+/=]{8,}[\\x22\\x27]",
+      "scope": "src/safe-boot/**/*.ts",
+      "exception": "*.env.template files are allowed (but not .env with real values). Test fixtures using mock data are excluded if in __tests__/ or test-fixtures/ directories.",
+      "source_docs": ["SEC-SPEC-005 Section 2.4"]
+    },
+    {
+      "id": "LIP-AUDIT-005",
+      "category": "neverbreak",
+      "severity": "BLOCKING",
+      "description": "Audit entries are append-only immutable. DELETE and UPDATE operations must never be called on audit_entries or audit_logs tables.",
+      "check": "audit service methods must never call repository.delete() or repository.update() on audit entry collections",
+      "scope": "src/safe-boot/backend/src/domains/**/audit*.ts",
+      "exception": "Automated retention purge process (scheduled job) may hard-delete entries past retention_expires_at, but each deletion must itself be logged to admin_operational_log table.",
+      "source_docs": ["DOC-012 Section 10 BR-AUD-004", "DOC-017 NB-PERSIST-006"]
+    },
+    {
+      "id": "LIP-AUDIT-006",
+      "category": "i18n",
+      "severity": "MAJOR",
+      "description": "UI strings must use i18next t('key') pattern. No hardcoded French or English text in React components.",
+      "pattern": "[\\x22][^t][^\\x22]{3,}[\\x22]",
+      "scope": "src/safe-boot/frontend/**/*.tsx",
+      "exception": "Test files (*.test.tsx, *.spec.tsx) can use hardcoded strings for clarity. Empty strings and single-character strings are ignored.",
+      "source_docs": ["DOC-012 Section 6 BR-FRM", "DOC-012 Section 12 BR-CONFIG-002"]
+    },
+    {
+      "id": "LIP-AUDIT-007",
+      "category": "logging",
+      "severity": "CRITICAL",
+      "description": "No console.log or console.error calls. Use NestJS Logger exclusively.",
+      "pattern": "console[.](log|error|warn|debug|info)",
+      "scope": "src/safe-boot/backend/**/*.ts",
+      "exception": "CLI entry points (src/main.ts, scripts/*.ts) may use console for user-facing output.",
+      "source_docs": ["ITS-v1 coding standards"]
+    },
+    {
+      "id": "LIP-AUDIT-008",
+      "category": "typing",
+      "severity": "CRITICAL",
+      "description": "No @ts-ignore directives. All type errors must be fixed at source.",
+      "pattern": "@ts-ignore",
+      "scope": "src/safe-boot/backend/**/*.ts",
+      "exception": "None.",
+      "source_docs": ["ITS-v1 NB-TECH-002"]
+    },
+    {
+      "id": "LIP-AUDIT-009",
+      "category": "entity-structure",
+      "severity": "CRITICAL",
+      "description": "All database entities must have UUID primary key, org_id FK with CASCADE delete, created_at, updated_at columns.",
+      "check": "every entity class and every Prisma model must declare @PrimaryColumn(type: uuid) or equivalent, @Column({ name: org_id, nullable: false }), @CreateDateColumn(), @UpdateDateColumn()",
+      "scope": "src/safe-boot/backend/src/**/*.ts",
+      "exception": "Junction tables with composite PK replace uuid PK with composite key. AuditAggregate entries have auto-incrementing sequence number instead of UUID.",
+      "source_docs": ["DOC-023 Section 2", "DOC-023 Section 4 NB-MT-001"]
+    },
+    {
+      "id": "LIP-AUDIT-010",
+      "category": "domain-events",
+      "severity": "CRITICAL",
+      "description": "All domain events must implement DomainEvent interface with aggregateId, eventType, timestamp fields. Events emitted after every state change.",
+      "check": "every event class must extend or implements DomainEvent base and contain aggregateId: string, eventType: string, timestamp: Date",
+      "scope": "src/safe-boot/backend/src/domains/**/*.ts",
+      "exception": "Internal system events (purely infra-level like HealthCheckCompleted) may omit aggregateId.",
+      "source_docs": ["DOC-014 Events registry"]
+    },
+    {
+      "id": "LIP-AUDIT-011",
+      "category": "configuration",
+      "severity": "MAJOR",
+      "description": "Hex color values must follow pattern ^#[0-9a-fA-F]{6}$ and be sourced from ConfigurationAggregate settings, never hardcoded.",
+      "pattern": "#[0-9a-fA-F]{6}",
+      "scope": "src/safe-boot/frontend/**/*.tsx",
+      "exception": "Color definitions in design token/theme files are allowed (e.g., src/**/theme.ts, src/**/design-tokens.ts).",
+      "source_docs": ["DOC-012 Section 12 BR-CONFIG-003", "ITS-v1 NB-TECH-009"]
+    },
+    {
+      "id": "LIP-AUDIT-012",
+      "category": "state-machines",
+      "severity": "CRITICAL",
+      "description": "All resource state transitions must go through a StateTransitionValidator - no direct state mutation allowed.",
+      "check": "service methods changing entity.status/state must call validateTransition(oldState, newState) before persisting",
+      "scope": "src/safe-boot/backend/src/domains/**/*.ts",
+      "exception": "System bootstrap creates initial records with default states (no transition validation needed for first write).",
+      "source_docs": ["DOC-012 Section 11 StateTransitionValidator"]
+    },
+    {
+      "id": "LIP-AUDIT-013",
+      "category": "versioning",
+      "severity": "MAJOR",
+      "description": "All versioned resources must increment persist_version on every write. Optimistic concurrency check required.",
+      "check": "UPDATE queries must include WHERE version = <current_version> and increment version by 1 on success",
+      "scope": "src/safe-boot/backend/src/domains/**/*.ts",
+      "exception": "Append-only tables (audit_entries) do not have a version field. Config settings are mutable without version tracking.",
+      "source_docs": ["DOC-023 Section 5", "DOC-012 Section 3 INV-010"]
+    },
+    {
+      "id": "LIP-AUDIT-014",
+      "category": "security-audit",
+      "severity": "BLOCKING",
+      "description": "Audit entries old_values / new_values must NEVER contain password hashes, refresh_token_hash, encryption keys, or raw tokens. Per SEC-SPEC-004 Section 8.",
+      "check": "audit logging must exclude fields: password_hash, salt, refresh_token_hash, device_fingerprint_hash, raw_token_value",
+      "scope": "src/safe-boot/backend/src/domains/**/*.ts",
+      "exception": "None. This is a security critical rule.",
+      "source_docs": ["SEC-SPEC-004 Section 8", "SEC-SPEC-005 SN-SEC-009"]
+    },
+    {
+      "id": "LIP-AUDIT-015",
+      "category": "tracability",
+      "severity": "MAJOR",
+      "description": "Every generated artifact must contain IGS-v1 metadata header: generation_id, source_canonical, transformation_rule, architecture_version, compliance_status.",
+      "check": "first comment block or JSDoc of every generated file must contain metadata tags",
+      "scope": "src/safe-boot/**/*.{ts,tsx,prisma}",
+      "exception": "README.md files and configuration files (docker-compose.yml, .env.template) are exempt.",
+      "source_docs": ["IGS-v1 Section 5.1"]
+    },
+    {
+      "id": "LIP-AUDIT-016",
+      "category": "polymorphic-references",
+      "severity": "MAJOR",
+      "description": "Polymorphic references must store BOTH resource_type AND resource_id together (never just one). Entity types must be from an enumerated set.",
+      "check": "whenever a record has resource_id, it must also have resource_type; resource_type must match one of: transaction, member, event, archive_entry",
+      "scope": "src/safe-boot/backend/src/domains/**/*.ts",
+      "exception": "Single-target references (not polymorphic) are exempt.",
+      "source_docs": ["DOC-023 Section 3.5"]
+    },
+    {
+      "id": "LIP-AUDIT-017",
+      "category": "sync-pattern",
+      "severity": "CRITICAL",
+      "description": "Offline sync pending operations queue must never exceed batch size of 50 per push. Exponential backoff retry max 5 attempts.",
+      "check": "PushCoordinator must slice operations into batches of <=50; retry logic must use 1000*2^n ms delays capped at 5 retries",
+      "scope": "src/safe-boot/backend/src/domains/offline-sync/**/*.ts",
+      "exception": "Unit tests may simulate larger batches.",
+      "source_docs": ["DOC-012 Section 13 BR-SYNC-006"]
+    },
+    {
+      "id": "LIP-AUDIT-018",
+      "category": "compensation",
+      "severity": "CRITICAL",
+      "description": "Approved transactions must never be modified. Corrections must use compensating transactions with compensates_for field linking to original.",
+      "check": "UPDATE on transactions table where status=approved must be blocked; compensation creates NEW transaction with type=compensation and compensates_for=original_id",
+      "scope": "src/safe-boot/backend/src/domains/resource/**/*.ts",
+      "exception": "None. INV-001 absolute invariant.",
+      "source_docs": ["DOC-012 Section 3 BR-RES-002", "INV-001"]
+    }
+  ],
+  "forbidden_patterns": [
+    "@ts-ignore",
+    "console\\\\.log",
+    "console\\\\.error",
+    "console\\\\.warn",
+    "= undefined",
+    "== true",
+    "== false",
+    "== null",
+    "\\\\bany\\\\b",
+    "= \\\\{\\\\}",
+    "= \\\\[\\\\]",
+    "Math\\\\.random\\\\(\\\\)",
+    "new RegExp\\\\(",
+    "eval\\\\(",
+    "Function\\\\("
+  ],
+  "mandatory_patterns": [
+    "@Injectable(\\\\(\\\\))?",
+    "implements.*Service",
+    "DomainEvent",
+    "org_id",
+    "t\\\\(",
+    "Logger\\\\.",
+    "private readonly",
+    "async ",
+    "await "
+  ],
+  "severity_levels": {
+    "CRITICAL": "Must be fixed before merging. Blocks deployment pipeline.",
+    "MAJOR": "Must be fixed before release. High priority remediation.",
+    "MINOR": "Should be fixed. Tracked in sprint backlog.",
+    "BLOCKING": "Violates NeverBreak rules. Zero tolerance. Immediate fix required."
+  }
+}

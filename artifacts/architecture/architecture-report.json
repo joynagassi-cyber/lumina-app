@@ -1,0 +1,97 @@
+{
+  "schema": "LIP-v1-architecture-validate",
+  "version": "1.0.0",
+  "timestamp": "2026-07-26T19:51:47.453Z",
+  "summary": {
+    "totalChecks": 6,
+    "passed": 2,
+    "failed": 4,
+    "totalViolations": 9,
+    "status": "FAIL"
+  },
+  "checks": [
+    {
+      "name": "ReverseDependency",
+      "pass": true,
+      "violationCount": 0,
+      "violations": []
+    },
+    {
+      "name": "NestDecorators",
+      "pass": false,
+      "violationCount": 1,
+      "violations": [
+        {
+          "file": "safe-boot\\backend\\src\\app.module.ts",
+          "line": 35,
+          "detail": "Class \"AppModule\" in a NestJS-like module is missing a @decorator"
+        }
+      ]
+    },
+    {
+      "name": "DependencyInversion",
+      "pass": true,
+      "violationCount": 0,
+      "violations": []
+    },
+    {
+      "name": "HardcodedColors",
+      "pass": false,
+      "violationCount": 1,
+      "violations": [
+        {
+          "file": "safe-boot\\frontend\\src\\app\\_layout.tsx",
+          "line": 56,
+          "detail": "Hardcoded hex color \"#121212\" -- use design tokens instead"
+        }
+      ]
+    },
+    {
+      "name": "TestSourcePairing",
+      "pass": false,
+      "violationCount": 2,
+      "violations": [
+        {
+          "file": "json-validation.test.ts",
+          "detail": "No corresponding source file found for test \"json-validation.test.ts\""
+        },
+        {
+          "file": "unit\\new-feature-types.test.ts",
+          "detail": "No corresponding source file found for test \"unit\\new-feature-types.test.ts\""
+        }
+      ]
+    },
+    {
+      "name": "DomainEventPattern",
+      "pass": false,
+      "violationCount": 5,
+      "violations": [
+        {
+          "file": "core\\runtime\\RuntimeStateStore.ts",
+          "line": 22,
+          "detail": "Type \"EngineEvent\" sounds like an event but lacks timestamp: Date"
+        },
+        {
+          "file": "core\\runtime\\RuntimeStateStore.ts",
+          "line": 31,
+          "detail": "Type \"EventBatch\" sounds like an event but lacks timestamp: Date"
+        },
+        {
+          "file": "core\\runtime\\RuntimeStateStore.ts",
+          "line": 84,
+          "detail": "Type \"EngineEventMap\" sounds like an event but lacks timestamp: Date"
+        },
+        {
+          "file": "core\\runtime\\RuntimeStateStore.ts",
+          "line": 92,
+          "detail": "Type \"TypedEventEmitter\" sounds like an event but lacks timestamp: Date"
+        },
+        {
+          "file": "core\\runtime\\RuntimeStateStore.ts",
+          "line": 144,
+          "detail": "Type \"EventBatcher\" sounds like an event but lacks timestamp: Date"
+        }
+      ]
+    }
+  ]
+}

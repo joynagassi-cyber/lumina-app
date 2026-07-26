@@ -1,0 +1,32 @@
+/**
+ * Lumina EAS Build Configuration — Per ITS-V1 Deployment Spec
+ */
+
+module.exports = {
+  version: "1.0.0",
+  build: {
+    development: {
+      developmentClient: true,
+      distribution: "internal",
+    },
+    preview: {
+      distribution: "internal",
+      android: {
+        buildType: "apk",
+      },
+    },
+    production: {
+      android: {
+        buildType: "app-bundle",
+      },
+      ios: {
+        image: "latest",
+      },
+    },
+  },
+  submit: {
+    android: {
+      serviceName: "lumina-app",
+    },
+  },
+};

@@ -1,0 +1,63 @@
+/**
+ * Lumina Expo App Configuration — Per ITS-V1:
+ * - Expo SDK 51+ with Hermes engine enabled
+ * - File-based routing via expo-router v4 (ADR-012)
+ * - Multi-platform: iOS, Android, Web (via react-native-web)
+ */
+
+module.exports = {
+  expo: {
+    name: 'Lumina',
+    slug: 'lumina-app',
+    scheme: 'lumina',
+    version: '1.0.0',
+    orientation: 'portrait',
+    icon: './assets/icon.png',
+    userInterfaceStyle: 'automatic', // dark/light mode per ITS-V1 NB-TECH-008
+    splash: {
+      image: './assets/splash.png',
+      resizeMode: 'contain',
+      backgroundColor: '#121212', // Dark theme default (Spotify-inspired, ADR-011)
+    },
+    assetBundlePatterns: ['**/*'],
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: 'com.lumina.app',
+      infoPlist: {
+        NSCameraUsageDescription: 'Taken photos for member profiles and event attachments.',
+        NSMicrophoneUsageDescription: 'Required for video capture during events.',
+      },
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: './assets/adaptive-icon.png',
+        backgroundColor: '#121212',
+      },
+      package: 'com.lumina.app',
+      permissions: ['CAMERA', 'RECORD_AUDIO'],
+    },
+    web: {
+      bundler: 'metro',
+      output: 'static',
+      favicon: './assets/favicon.png',
+    },
+    plugins: [
+      'expo-router',
+      'expo-secure-store',
+      'expo-localization',
+      [
+        'expo-splash-screen',
+        {
+          backgroundColor: '#121212',
+          image: './assets/splash.png',
+          imageWidth: 200,
+        },
+      ],
+    ],
+    extra: {
+      eas: {
+        projectId: 'lumina-app',
+      },
+    },
+  },
+};

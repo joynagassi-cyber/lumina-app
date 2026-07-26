@@ -1,0 +1,40 @@
+{
+  "schema": "LIP-v1-traceability-verify",
+  "version": "1.0.0",
+  "timestamp": "2026-07-26T19:48:15.063Z",
+  "summary": {
+    "totalSourceFiles": 23,
+    "coveredFiles": 0,
+    "uncoveredFiles": 23,
+    "coveragePercentage": 0,
+    "status": "FAIL",
+    "blocksPipeline": true
+  },
+  "matrixValid": true,
+  "coveredFiles": [],
+  "uncoveredFiles": [
+    "src/core/runtime/examples/fanout-example.ts",
+    "src/core/runtime/index.ts",
+    "src/core/runtime/react/RuntimeContext.tsx",
+    "src/core/runtime/RuntimeStateStore.ts",
+    "src/features/new-feature/types/new-feature.types.ts",
+    "src/safe-boot/backend/jest.config.ts",
+    "src/safe-boot/backend/src/app.module.ts",
+    "src/safe-boot/backend/src/main.ts",
+    "src/shared/ajv-validator.ts",
+    "src/shared/feature-hot-swap/engine.ts",
+    "src/shared/feature-hot-swap/index.ts",
+    "src/shared/feature-hot-swap/runtime-patches.ts",
+    "src/shared/feature-hot-swap/types.ts",
+    "src/shared/index.ts",
+    "src/shared/json-preprocess.ts",
+    "src/shared/json-robust-parse.ts",
+    "src/shared/json-validation.ts",
+    "src/shared/offline-runtime/cache.ts",
+    "src/shared/offline-runtime/conflict-resolver.ts",
+    "src/shared/offline-runtime/connectivity-listener.ts",
+    "src/shared/offline-runtime/index.ts",
+    "src/shared/offline-runtime/types.ts",
+    "src/shared/offline-runtime/version-stack.ts"
+  ]
+}

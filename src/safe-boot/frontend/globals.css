@@ -1,0 +1,63 @@
+/**
+ * Lumina Global CSS — Design Tokens Root
+ *
+ * Per ITS-V1: all colors must derive from CSS custom properties.
+ * accent-color is dynamically set per organization via JS at runtime.
+ */
+
+:root {
+  /* Lumina Design Tokens — Dark Theme Default */
+  --lumina-bg: #121212;
+  --lumina-surface: #181818;
+  --lumina-elevated: #282828;
+  --lumina-border: #333333;
+  --lumina-text: #FFFFFF;
+  --lumina-text-secondary: #B3B3B3;
+  --lumina-text-muted: #727272;
+  --lumina-accent: #9966FF;
+  --lumina-success: #1DB954;
+  --lumina-warning: #F59E0B;
+  --lumina-error: #E13C3E;
+
+  /* Typography scale */
+  --font-size-h1: 32px;
+  --font-size-h2: 24px;
+  --font-size-h3: 20px;
+  --font-size-body: 16px;
+  --font-size-caption: 12px;
+
+  /* Spacing scale (4px base) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Touch targets — per WCAG / ADR-012 */
+  --touch-target-min: 44px;
+
+  /* Elevation / shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Light theme — overridden when device switches */
+@media (prefers-color-scheme: light) {
+  :root {
+    --lumina-bg: #FFFFFF;
+    --lumina-surface: #F5F5F5;
+    --lumina-elevated: #EEEEEE;
+    --lumina-border: #DDDDDD;
+    --lumina-text: #121212;
+    --lumina-text-secondary: #555555;
+    --lumina-text-muted: #999999;
+  }
+}
