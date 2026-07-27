@@ -9,7 +9,6 @@
 import React from 'react';
 import { cn } from '@/utils';
 import { Text, View } from 'react-native';
-import { Button, type ButtonProps } from './Button';
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -61,9 +60,15 @@ export function EmptyState({
         </Text>
       )}
       {actionLabel && (
-        <Button onPress={onAction} variant="primary" size="sm">
-          {actionLabel}
-        </Button>
+        <Pressable
+          onPress={onAction}
+          className="flex-row items-center justify-center rounded-lg bg-lumina-accent h-9 px-3"
+          style={{ minHeight: 44 }}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+        >
+          <Text className="text-sm font-semibold text-lumina-bg">{actionLabel}</Text>
+        </Pressable>
       )}
     </View>
   );

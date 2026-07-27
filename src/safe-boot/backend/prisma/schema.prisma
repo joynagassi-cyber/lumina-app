@@ -33,7 +33,7 @@ model Organization {
   local_updated_at DateTime? @map("local_updated_at") @db.Timestamptz(6)
 
   // Relations
-  org_units            OrgUnit[]
+  org_units            OrgUnit[]       @relation("OrgUnitOrganization")
   users                User[]
   transactions         Transaction[]
   members              Member[]
@@ -41,15 +41,18 @@ model Organization {
   categories           Category[]
   notifications        Notification[]
   vocab_namespaces     VocabNamespace[]
-  reports              Report[]
+  reports              Report[] @relation("ReportOrg")
   audit_entries        AuditEntry[]
   archives             ArchiveEntry[]
-  pending_operations   PendingOperation[]
-  sync_statuses        SyncStatus[]
+  pending_operations   PendingOperation[] @relation("PendingOpOrg")
+  sync_statuses        SyncStatus[]        @relation("SyncStatusOrg")
   settings             Setting[]
   org_settings         OrgSetting[]
   workflow_instances   WorkflowInstance[]
-  notification_logs    NotificationLog[]
+  group_memberships    GroupMembership[] @relation("GroupMembOrg")
+  unit_links_created   OrgUnitLink[]     @relation("OrgLinkOrg")
+  forms                Form[]          @relation("FormOrg")
+  purge_schedules      PurgeSchedule[] @relation("PurgeOrg")
 
   @@map("organizations")
 }
@@ -71,10 +74,10 @@ model OrgUnit {
 
   parent            OrgUnit[]       @relation("OrgUnitHierarchy")
   children          OrgUnit[]       @relation("OrgUnitHierarchy")
-  members           Member[]
   group_memberships GroupMembership[]
   links_as_enfant   OrgUnitLink[]   @relation("OrgUnitLinkEnfant")
   links_as_parent   OrgUnitLink[]   @relation("OrgUnitLinkParent")
+  org_organizations Organization  @relation("OrgUnitOrganization", fields: [org_id], references: [org_id])
 
   @@unique([org_id, nom])
   @@index([org_id])
@@ -120,6 +123,7 @@ model User {
   purge_schedules_executed  PurgeSchedule[] @relation("PurgeExecutedBy")
   settings_updated          Setting[] @relation("SettingUpdatedBy")
   notification_preferences  NotificationPreference?
+  org_settings_updated      OrgSetting[] @relation("OrgSettingUpdatedBy")
 
   @@unique([adresse_email, org_id])
   @@index([org_id])
@@ -132,7 +136,7 @@ model Session {
   hachage_refresh_token String  @map("hachage_refresh_token") @db.Text
   date_expiration    DateTime  @map("date_expiration") @db.Timestamptz(6)
   est_active         Boolean   @map("est_active") @default(true)
-  informations_appareil Jsonb   @map("informations_appareil")
+  informations_appareil Json   @map("informations_appareil")
   created_at         DateTime  @map("created_at") @default(now()) @db.Timestamptz(6)
 
   user               User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -203,7 +207,7 @@ model PendingOperation {
   resource_type String   @map("resource_type") @db.VarChar(50)
   resource_id   String   @map("resource_id") @db.Uuid
   action        String   @map("action") @db.VarChar(10)
-  payload       Jsonb    @map("payload")
+  payload       Json   @map("payload")
   statut_sync   String   @map("statut_sync") @db.VarChar(20) @default("pending")
   tentative_num Int      @map("tentative_num") @default(0)
   created_at    DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
@@ -212,6 +216,7 @@ model PendingOperation {
 
   @@index([org_id])
   @@index([statut_sync])
+  organization_pending_ops Organization @relation("PendingOpOrg", fields: [org_id], references: [org_id], onDelete: Cascade)
   @@map("pending_operations")
 }
 
@@ -224,6 +229,7 @@ model SyncStatus {
 
   @@unique([table_reference, org_id])
   @@index([org_id])
+  organization_sync_statuses Organization @relation("SyncStatusOrg", fields: [org_id], references: [org_id], onDelete: Cascade)
   @@map("sync_statuses")
 }
 
@@ -239,8 +245,8 @@ model AuditEntry {
   entite_type        String    @map("entite_type") @db.VarChar(255)
   entite_id          String    @map("entite_id") @db.Uuid
   utilisateur_id     String    @map("utilisateur_id") @db.Uuid
-  valeur_avant       Jsonb     @map("valeur_avant")
-  valeur_apres       Jsonb     @map("valeur_apres")
+  valeur_avant       Json   @map("valeur_avant")
+  valeur_apres       Json   @map("valeur_apres")
   adresse_ip         String?   @map("adresse_ip") @db.VarChar(45)
   date_heure_utc     DateTime  @map("date_heure_utc") @db.Timestamptz(6) @default(now())
   duree_retention_annees Int   @map("duree_retention_annees") @default(7)
@@ -264,13 +270,13 @@ model OrgSetting {
   id               String   @id @default(uuid()) @db.Uuid
   org_id           String   @map("org_id") @db.Uuid
   cle_parametre    String   @map("cle_parametre") @db.VarChar(255)
-  valeur_parametre Jsonb    @map("valeur_parametre")
+  valeur_parametre Json   @map("valeur_parametre")
   mis_a_jour_par   String   @map("mis_a_jour_par") @db.Uuid
   mis_a_jour_le    DateTime @map("mis_a_jour_le") @db.Timestamptz(6)
   version          Int      @map("version") @default(1)
 
   org  Organization @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
-  user User         @relation(fields: [mis_a_jour_par], references: [id])
+  user User         @relation("OrgSettingUpdatedBy", fields: [mis_a_jour_par], references: [id])
 
   @@unique([cle_parametre, org_id])
   @@index([org_id])
@@ -293,7 +299,7 @@ model Member {
   numero_membre           String   @map("numero_membre") @db.VarChar(50)
   date_entree             DateTime @map("date_entree") @db.Date
   date_sortie             DateTime?  @map("date_sortie") @db.Date
-  certificat_transfert    Jsonb?   @map("certificat_transfert")
+  certificat_transfert Json? @map("certificat_transfert")
   est_synchronise Boolean  @default(false) @map("est_synchronise")
   conflict_strategy       String   @map("conflict_strategy") @db.VarChar(32) @default("LWW")
   is_deleted              Boolean  @map("is_deleted") @default(false)
@@ -307,6 +313,7 @@ model Member {
   org            Organization       @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
   created_by_user User?             @relation("MemberCreatedBy", fields: [created_by], references: [id])
   group_memberships GroupMembership[]
+  linked_archives ArchiveEntry[]    @relation("MemberLinkedArchive")
 
   @@index([org_id])
   @@index([statut_membre])
@@ -379,7 +386,7 @@ model GroupMembership {
   date_depart   DateTime?  @map("date_depart") @db.Date
   role_groupe   String?  @map("role_groupe") @db.VarChar(100)
 
-  org     Organization @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
+  org     Organization @relation("GroupMembOrg", fields: [org_id], references: [org_id], onDelete: Cascade)
   member  Member       @relation(fields: [membre_id], references: [id])
   group   OrgUnit      @relation(fields: [groupe_id], references: [id])
 
@@ -397,7 +404,7 @@ model OrgUnitLink {
   parent_id         String   @map("parent_id") @db.Uuid
   date_modification DateTime @map("date_modification") @db.Timestamptz(6) @default(now())
 
-  org      Organization @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
+  org      Organization @relation("OrgLinkOrg", fields: [org_id], references: [org_id], onDelete: Cascade)
   enfant   OrgUnit      @relation("OrgUnitLinkEnfant", fields: [enfant_id], references: [id])
   parent   OrgUnit      @relation("OrgUnitLinkParent", fields: [parent_id], references: [id])
 
@@ -492,7 +499,7 @@ model Form {
   date_premiere_publication DateTime? @map("date_premiere_publication") @db.Timestamptz(6)
   date_derniere_publication DateTime? @map("date_derniere_publication") @db.Timestamptz(6)
 
-  org         Organization      @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
+  org         Organization      @relation("FormOrg", fields: [org_id], references: [org_id], onDelete: Cascade)
   publie_by   User?             @relation("FormPublishedBy", fields: [publie_par], references: [id])
   sections    FormSection[]
 
@@ -554,7 +561,7 @@ model Notification {
   canal                 String    @db.VarChar(10)
   severite              String    @db.VarChar(10)
   statut_notification   String    @map("statut_notification") @db.VarChar(20) @default("queued")
-  donnees_contextuelles Jsonb?    @map("donnees_contextuelles")
+  donnees_contextuelles Json? @map("donnees_contextuelles")
   created_at            DateTime  @default(now()) @db.Timestamptz(6)
   date_envoi            DateTime? @map("date_envoi") @db.Timestamptz(6)
   date_lecture          DateTime? @map("date_lecture") @db.Timestamptz(6)
@@ -578,7 +585,7 @@ model Notification {
 model NotificationPreference {
   id                         String    @id @default(uuid()) @db.Uuid
   user_id                    String    @map("user_id") @db.Uuid
-  canaux_autorises           String[]  @map("canaux_autorises") @db.Array(@db.VarChar(10))
+  canaux_autorises           String[] @map("canaux_autorises")
   severite_minimale          String    @map("severite_minimale") @db.VarChar(10)
   limite_taux_max            Int       @map("limite_taux_max") @default(100)
   heures_silencieuses_debut  String?   @map("heures_silencieuses_debut") @db.VarChar(10)
@@ -662,7 +669,7 @@ model VocabValue {
   txns_created Transaction[] @relation("TransactionCategoryRef")
 
   @@index([term_id])
-  @@check([couleur_hex IS NULL OR couleur_hex ~ '^#[0-9a-fA-F]{6}$'])
+  // CHECK: couleur_hex IS NULL OR ~ '^#[0-9a-fA-F]{6}$' — enforced in migration
   @@map("vocab_values")
 }
 
@@ -675,14 +682,15 @@ model Report {
   titre_fr                 String   @map("titre_fr") @db.VarChar(255)
   titre_en                 String   @map("titre_en") @db.VarChar(255)
   periode_type             String   @map("periode_type") @db.VarChar(20)
-  format_export            String[] @map("format_export") @db.Array(@db.VarChar(50))
+  format_export            String[] @map("format_export")
   created_at               DateTime @default(now()) @db.Timestamptz(6)
   date_derniere_generation DateTime? @map("date_derniere_generation") @db.Timestamptz(6)
 
-  snapshots ReportSnapshot[]
+  snapshots         ReportSnapshot[]
+  organization_report Organization @relation("ReportOrg", fields: [org_id], references: [org_id], onDelete: Cascade)
 
   @@index([org_id])
-  @@check([periode_type IN ('month', 'quarter', 'year', 'custom')])
+  // CHECK: periode_type IN ('month','quarter','year','custom') — enforced in migration
   @@map("reports")
 }
 
@@ -698,7 +706,7 @@ model ReportSnapshot {
   total_revenu            BigInt   @map("total_revenu")
   total_depense           BigInt   @map("total_depense")
   resultat_net            BigInt   @map("resultat_net")
-  details_par_categorie   Jsonb    @map("details_par_categorie")
+  details_par_categorie Json @map("details_par_categorie")
   nombre_transactions     Int      @map("nombre_transactions")
   horodatage_genere       DateTime @map("horodatage_genere") @db.Timestamptz(6) @default(now())
   signature_numerique     String?  @map("signature_numerique") @db.VarChar(255)
@@ -707,9 +715,9 @@ model ReportSnapshot {
   definition Report? @relation(fields: [definition_id], references: [id], onDelete: SetNull)
 
   @@index([org_id])
-  @@check([portee IN ('org', 'group', 'all')])
-  @@check([total_revenu >= 0])
-  @@check([total_depense >= 0])
+  // CHECK: portee IN ('org','group','all') — enforced in migration
+  // CHECK: total_revenu >= 0 — enforced in migration
+  // CHECK: total_depense >= 0 — enforced in migration
   @@map("report_snapshots")
 }
 
@@ -723,10 +731,10 @@ model ArchiveEntry {
   resource_type_original     String    @map("resource_type_original") @db.VarChar(30)
   resource_id_original       String    @map("resource_id_original") @db.Uuid
   member_lie_id              String?   @map("member_lie_id") @db.Uuid
-  metadonnees_archive        Jsonb     @map("metadonnees_archive") @default("{}")
-  tags                       String?[] @db.VarChar(255)
+  metadonnees_archive     Json @map("metadonnees_archive")
+  tags                       String[]
   categorie                  String?   @db.VarChar(255)
-  url_pieces_jointes         String?[] @map("url_pieces_jointes") @db.VarChar(500)
+  url_pieces_jointes         String[] @map("url_pieces_jointes")
   etat_lifecycle             String    @map("etat_lifecycle") @db.VarChar(20) @default("active")
   date_archivage             DateTime  @map("date_archivage") @db.Timestamptz(6) @default(now())
   date_corbeille             DateTime? @map("date_corbeille") @db.Timestamptz(6)
@@ -736,14 +744,14 @@ model ArchiveEntry {
 
   org                  Organization     @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
   archived_by          User?            @relation("ArchiveCreatedBy", fields: [archive_par], references: [id])
-  linked_member        Member?          @relation(fields: [member_lie_id], references: [id])
+  linked_member        Member?         @relation("MemberLinkedArchive", fields: [member_lie_id], references: [id])
   purge_schedules      PurgeSchedule[]
 
   @@index([org_id])
   @@index([etat_lifecycle])
   @@index([resource_type_original])
-  @@check([etat_lifecycle IN ('active', 'archived', 'trashed', 'purged')])
-  @@check([resource_type_original IN ('transaction', 'member', 'event', 'archive_entry')])
+  // CHECK: etat_lifecycle IN ('active','archived','trashed','purged') — enforced in migration
+  // CHECK: resource_type_original IN ('transaction','member','event','archive_entry') — enforced in migration
   @@map("archives")
 }
 
@@ -760,12 +768,12 @@ model PurgeSchedule {
   date_execution          DateTime? @map("date_execution") @db.Timestamptz(6)
   executee_par            String?   @map("executee_par") @db.Uuid
 
-  org       Organization  @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
+  org       Organization   @relation("PurgeOrg", fields: [org_id], references: [org_id], onDelete: Cascade)
   entry     ArchiveEntry  @relation(fields: [entry_id], references: [id], onDelete: Cascade)
   executed_by User?       @relation("PurgeExecutedBy", fields: [executee_par], references: [id])
 
   @@index([org_id])
-  @@check([etats_eligibles IN ('trashed', 'archived')])
+  // CHECK: etats_eligibles IN ('trashed','archived') — enforced in migration
   @@map("purge_schedules")
 }
 
@@ -775,10 +783,10 @@ model Setting {
   id             String   @id @default(uuid()) @db.Uuid
   org_id         String   @map("org_id") @db.Uuid
   cle_parametre  String   @map("cle_parametre") @db.VarChar(255)
-  valeur         Jsonb
+  valeur         Json
   mis_a_jour_par String?  @map("mis_a_jour_par") @db.Uuid
   mis_a_jour_le  DateTime @map("mis_a_jour_le") @db.Timestamptz(6) @default(now())
-  valeur_defaut  Jsonb    @map("valeur_defaut") @default("{}")
+  valeur_defaut  Json @map("valeur_defaut")
 
   org      Organization @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
   updated_by User?      @relation("SettingUpdatedBy", fields: [mis_a_jour_par], references: [id])

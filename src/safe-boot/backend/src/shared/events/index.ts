@@ -8,3 +8,5 @@ export abstract class DomainEvent {
     public readonly occurredAt: Date = new Date(),
   ) {}
 }
+
+export type DomainEventHandler<T extends DomainEvent = DomainEvent> = (event: T) => Promise<void>;
