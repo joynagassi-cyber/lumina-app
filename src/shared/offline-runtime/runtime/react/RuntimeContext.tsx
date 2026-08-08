@@ -54,7 +54,7 @@ export function useEngineVersion<K extends EngineName>(engine: K): number {
 // Provider — single Store → React bridge
 // ---------------------------------------------------------------------------
 
-interface RuntimeProviderProps {
+export interface RuntimeProviderProps {
   store: RuntimeStateStore;
   children: React.ReactNode;
 }

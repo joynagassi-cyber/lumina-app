@@ -172,6 +172,8 @@ export interface L3FileSystemStore {
   loadManifestFile(orgId: string, version: number): Promise<OfflineManifest | null>;
   /** Check if file exists. */
   exists(orgId: string, version: number): Promise<boolean>;
+  /** Delete a manifest file (cache invalidation). */
+  deleteManifestFile(orgId: string, version: number): Promise<void>;
   /** Get cache directory URI. */
   getCacheDirUri(): Promise<string>;
 }

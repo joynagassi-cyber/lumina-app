@@ -79,7 +79,7 @@ export interface RuntimeAppState {
 // ============================================================================
 
 type Listener<TPayload = unknown> = (event: EngineEvent<TPayload>) => void;
-type UnsubscribeFn = () => void;
+export type UnsubscribeFn = () => void;
 
 interface EngineEventMap {
   [EngineName.Manifest]: Record<string, unknown>;
@@ -103,19 +103,19 @@ class TypedEventEmitter<TEngine extends EngineName> {
       if (!this.listeners.has(t)) {
         this.listeners.set(t, new Set());
       }
-      this.listeners.get(t)!.add(cb);
+      this.listeners.get(t)!.add(cb as Listener<unknown>);
     }
     return () => this.off(engine, eventTypes, cb);
   }
 
   off<TType extends keyof EngineEventMap[TEngine]>(
-    engine: TEngine,
+    _engine: TEngine,
     eventTypes: TType | TType[],
     cb: Listener<EngineEventMap[TEngine][TType & string]>,
   ): void {
     const types = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
     for (const t of types) {
-      this.listeners.get(t)?.delete(cb);
+      this.listeners.get(t)?.delete(cb as Listener<unknown>);
     }
   }
 
@@ -126,7 +126,7 @@ class TypedEventEmitter<TEngine extends EngineName> {
   }
 
   emit(event: EngineEvent): void {
-    const { type, engine, payload } = event;
+    const { type } = event;
     // Direct typed listeners
     this.listeners.get(type)?.forEach((fn) => fn(event));
     // Global fan-out listeners
@@ -151,11 +151,6 @@ class EventBatcher {
   }
 
   push(event: EngineEvent): void {
-    // Group by correlationId when present; otherwise fall back to time-window
-    const correlated = this.queue.find(
-      (e) => e.correlationId && e.correlationId === event.correlationId,
-    );
-
     this.queue.push(event);
 
     if (this.queue.length >= MAX_BATCH_SIZE) {
@@ -165,7 +160,7 @@ class EventBatcher {
     }
   }
 
-  flush(reason: 'timeout' | 'max-size' | 'manual'): void {
+  flush(_reason: 'timeout' | 'max-size' | 'manual'): void {
     if (this.queue.length === 0) return;
 
     // Pick the first non-empty correlationId or fallback to 'ungrouped'
@@ -281,21 +276,24 @@ type EngineSpecificActions = {
   [EngineName.Capability]: { featureId: string; enabled: boolean };
 };
 
-type Action<K extends EngineName> = {
-  engine: K;
-  type: string;
-  payload: EngineSpecificActions[K];
-  subscriptionId?: string; // optional WatermelonDB subscription handle
-};
+type Action = {
+  [K in EngineName]: {
+    engine: K;
+    type: string;
+    payload: EngineSpecificActions[K];
+    subscriptionId?: string; // optional WatermelonDB subscription handle
+  };
+}[EngineName];
 
 class RuntimeStateStore {
   private state: RuntimeAppState;
+  private snapshot: RuntimeAppState;
   private listeners = new Set<AppStateListener>();
   private emitter = new TypedEventEmitter<EngineName>();
   private batcher: EventBatcher;
   private dependencyGraph: DependencyGraph;
   private updateLock = false;
-  private pendingActions: Array<Action<EngineName>> = [];
+  private pendingActions: Array<Action> = [];
 
   constructor(initialOrgId: string | null = null) {
     this.state = {
@@ -319,14 +317,15 @@ class RuntimeStateStore {
     };
     this.dependencyGraph = new DependencyGraph();
     this.batcher = new EventBatcher((batch) => this.processBatch(batch));
+    this.snapshot = this.cloneState();
   }
 
   getState(): Readonly<RuntimeAppState> {
-    return this.state;
+    return this.snapshot;
   }
 
   getEngine<K extends EngineName>(name: K): EngineStateSnapshots[K] {
-    return this.state.engineStates[name];
+    return this.snapshot.engineStates[name];
   }
 
   isReady(engine: EngineName): boolean {
@@ -340,7 +339,7 @@ class RuntimeStateStore {
   }
 
   /** Low-level: action dispatched directly (bypasses batching, use for sync init) */
-  dispatch(action: Action<EngineName>): void {
+  dispatch(action: Action): void {
     if (this.updateLock) {
       // Queue for next tick — prevents recursive dispatch during setState
       this.pendingActions.push(action);
@@ -358,7 +357,9 @@ class RuntimeStateStore {
 
   /** Mark an engine as ready (call after bootstrap completes) */
   markReady(engine: EngineName): void {
+    const prev = this.snapshot;
     this.applyInternal((s) => s.enginesReady.add(engine));
+    this.commit(prev);
   }
 
   /** Get topological update order */
@@ -392,14 +393,22 @@ class RuntimeStateStore {
   private applyInternal(fn: (state: RuntimeAppState) => void): void {
     fn(this.state);
     this.state.mutationCounter++;
-    this.notifyListeners();
   }
 
-  private applyAction(action: Action<EngineName>): void {
-    const { engine, type, payload } = action;
+  private applyAction(action: Action): void {
+    const prev = this.snapshot;
+    this.applyActionInternal(action);
+    this.commit(prev);
+    // Drain queued actions if recursion happened
+    this.drainPending();
+  }
+
+  private applyActionInternal(action: Action): void {
+    const { engine, type } = action;
 
     switch (engine) {
       case EngineName.Manifest: {
+        const payload = action.payload;
         this.applyInternal((s) => {
           const snap = s.engineStates[EngineName.Manifest];
           snap.raw = payload.manifest;
@@ -412,6 +421,7 @@ class RuntimeStateStore {
         break;
       }
       case EngineName.Vocabulary: {
+        const payload = action.payload;
         this.applyInternal((s) => {
           const snap = s.engineStates[EngineName.Vocabulary];
           snap.terms = payload.terms;
@@ -421,6 +431,7 @@ class RuntimeStateStore {
         break;
       }
       case EngineName.Forms: {
+        const payload = action.payload;
         this.applyInternal((s) => {
           const snap = s.engineStates[EngineName.Forms];
           snap.compiledForms[payload.formId] = payload.renderTree;
@@ -429,6 +440,7 @@ class RuntimeStateStore {
         break;
       }
       case EngineName.Workflow: {
+        const payload = action.payload;
         this.applyInternal((s) => {
           const snap = s.engineStates[EngineName.Workflow];
           snap.activeInstances[payload.workflowId] = payload.transition;
@@ -437,6 +449,7 @@ class RuntimeStateStore {
         break;
       }
       case EngineName.Capability: {
+        const payload = action.payload;
         this.applyInternal((s) => {
           const snap = s.engineStates[EngineName.Capability];
           if (payload.enabled) {
@@ -455,12 +468,45 @@ class RuntimeStateStore {
         break;
       }
     }
+  }
 
-    this.state.mutationCounter++;
-    this.notifyListeners();
+  /** Publish a fresh immutable snapshot and notify subscribers (single notify per action). */
+  private commit(prev: RuntimeAppState): void {
+    this.snapshot = this.cloneState();
+    this.notifyListeners(prev);
+  }
 
-    // Drain queued actions if recursion happened
-    this.drainPending();
+  /** Deep-ish clone preserving Map/Set — NEVER JSON.stringify (it destroys them). */
+  private cloneState(): RuntimeAppState {
+    const s = this.state;
+    return {
+      engineStates: {
+        [EngineName.Manifest]: { ...s.engineStates[EngineName.Manifest] },
+        [EngineName.Vocabulary]: {
+          ...s.engineStates[EngineName.Vocabulary],
+          terms: new Map(s.engineStates[EngineName.Vocabulary].terms),
+        },
+        [EngineName.Forms]: {
+          ...s.engineStates[EngineName.Forms],
+          compiledForms: { ...s.engineStates[EngineName.Forms].compiledForms },
+        },
+        [EngineName.Workflow]: {
+          ...s.engineStates[EngineName.Workflow],
+          activeInstances: { ...s.engineStates[EngineName.Workflow].activeInstances },
+        },
+        [EngineName.Capability]: {
+          ...s.engineStates[EngineName.Capability],
+          enabledFeatures: [...s.engineStates[EngineName.Capability].enabledFeatures],
+          capabilityMatrix: Object.fromEntries(
+            Object.entries(s.engineStates[EngineName.Capability].capabilityMatrix).map(([k, v]) => [k, { ...v }]),
+          ),
+        },
+      },
+      enginesReady: new Set(s.enginesReady),
+      currentOrganizationId: s.currentOrganizationId,
+      mutationCounter: s.mutationCounter,
+      lastRenderScheduledAt: s.lastRenderScheduledAt,
+    };
   }
 
   private drainPending(): void {
@@ -481,25 +527,24 @@ class RuntimeStateStore {
     const updateOrder = this.dependencyGraph.topologicalSort();
     const sorted = updateOrder.filter((eng) => affectedEngines.includes(eng));
 
-    // Apply deduplicated events in topological order
+    // Apply deduplicated events in topological order (single commit per batch)
+    const prev = this.snapshot;
     for (const eng of sorted) {
       const event = deduped.get(`${eng}:${batch.events.find((e) => e.engine === eng)?.type ?? ''}`);
       if (event) {
         // Convert event → dispatchable action
         const action = this.eventToAction(event);
         if (action) {
-          this.applyAction(action);
+          this.applyActionInternal(action);
         }
       }
     }
-
-    this.state.mutationCounter++;
-    this.notifyListeners();
+    this.commit(prev);
   }
 
   private eventToAction(
     event: EngineEvent,
-  ): Action<EngineName> | null {
+  ): Action | null {
     return {
       engine: event.engine,
       type: event.type,
@@ -507,15 +552,10 @@ class RuntimeStateStore {
     };
   }
 
-  private notifyListeners(): void {
-    // Snapshot before notifying so listeners see consistent state
-    const snapshot = JSON.parse(JSON.stringify(this.state));
-    // Don't call sync JSON — just iterate with reference comparison
-
-    // Real implementation uses Object.is; stringify only for demo serialization
+  private notifyListeners(prev: RuntimeAppState): void {
     for (const listener of this.listeners) {
       try {
-        listener(snapshot as unknown as RuntimeAppState, this.state);
+        listener(prev, this.snapshot);
       } catch (err) {
         console.error('[RuntimeStateStore] Listener error:', err);
       }
@@ -557,26 +597,16 @@ class SubscriptionManager {
   subscribe<TRow>(
     engine: EngineName,
     table: string,
-    onChange: (rows: TRow[]) => void,
+    _onChange: (rows: TRow[]) => void,
   ): WatermelonSubscriptionHandle {
     const counterAtSubscribe = this.store.getState().mutationCounter;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const wrappedCallback = (rawRows: any[]): void => {
-      const state = this.store.getState();
-      // Stale guard: if the store has moved on with higher mutations
-      // while this subscription was idle, check whether we're still relevant
-      if (state.mutationCounter > counterAtSubscribe + 100) {
-        // Likely a stale subscription from a re-connection; unsubscribe and re-subscribe
-        // The engine should handle this by catching the unsubscribe and re-calling subscribe
-        return;
-      }
-      onChange(rawRows);
-    };
-
+    // Stale-guard: real WatermelonDB wiring must re-check mutationCounter before
+    // applying rows (guard: if state.mutationCounter > counterAtSubscribe + 100,
+    // the subscription is stale — unsubscribe and re-subscribe).
     // Placeholder: actual WatermelonDB observable.attach would be wired here
     // const observable = database.get(table).observable;
-    // const unsub = observable.subscribe(wrappedCallback);
+    // const unsub = observable.subscribe((rawRows) => { ...stale-guard... onChange(rawRows); });
 
     const id = `${engine}:${table}:${counterAtSubscribe}`;
     this.subscriptions.set(id, {
@@ -614,9 +644,6 @@ export {
   ENGINE_DEPENDENCIES,
 };
 export type {
-  RuntimeAppState,
-  EngineEvent,
-  EventBatch,
   EngineStateSnapshots,
   AppStateListener,
   EngineDepMap,

@@ -3,7 +3,7 @@
  * Wraps AJV with sensible defaults for Lumina's config validation.
  */
 
-import Ajv from 'ajv';
+import Ajv, { type ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import type { JSONSchema7 } from 'json-schema';
 
@@ -23,12 +23,12 @@ export function getAjvInstance(): Ajv {
 }
 
 /** Compile and cache a validator for the given schema key. */
-const _validatorCache = new Map<string, Ajv.ValidateFunction>();
+const _validatorCache = new Map<string, ValidateFunction>();
 
 export function compileValidator(
   key: string,
   schema: JSONSchema7
-): Ajv.ValidateFunction {
+): ValidateFunction {
   const existing = _validatorCache.get(key);
   if (existing) return existing;
 

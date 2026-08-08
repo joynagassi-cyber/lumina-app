@@ -9,7 +9,7 @@ import {
   DependencyGraph,
   EngineName,
 } from '../RuntimeStateStore';
-import type { EngineEvent, EventBatch } from '../RuntimeStateStore';
+import type { EventBatch } from '../RuntimeStateStore';
 
 console.log('=== 1. Topological Update Order ===');
 const graph = new DependencyGraph();
@@ -112,13 +112,7 @@ function runStoreDemo() {
   console.log(`  After marking ready: ${store.getState().enginesReady.size}/5 engines`);
 
   console.log('\n=== 5. EventEmitter onAny (global listener) ===');
-  const emitter = new (class {
-    sub = store.emitEvent.bind(store);
-  })();
-
-  let globalCount = 0;
   store.emitEvent(EngineName.Manifest, 'test:event', {});
-  // Can't easily count — test is structural
 
   console.log('  emitEvent called successfully (structural test)');
 
