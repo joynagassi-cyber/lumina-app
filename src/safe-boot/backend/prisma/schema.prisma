@@ -15,6 +15,29 @@ datasource db {
 // ORGANIZATION AGGREGATE
 // ============================================================
 
+
+
+// Enum types for custom extensions
+enum ProjectStatus {
+  planned
+  in_progress
+  completed
+  archived
+}
+
+enum TaskPriority {
+  high
+  medium
+  low
+}
+
+enum TaskStatus {
+  pending
+  in_progress
+  completed
+}
+
+
 model Organization {
   id              String   @id @default(uuid()) @db.Uuid
   org_id          String   @unique @map("org_id") @db.Uuid
@@ -34,6 +57,9 @@ model Organization {
 
   // Relations
   org_units            OrgUnit[]       @relation("OrgUnitOrganization")
+  projects             Project[]
+  documents            Document[]
+  wiki_pages           WikiPage[]
   users                User[]
   transactions         Transaction[]
   members              Member[]
@@ -804,3 +830,89 @@ model Setting {
 // transformation_rule: "prisma-generator v1.0"
 // compliance_status: "COMPLIANT"
 // =====================
+
+
+// === CUSTOM EXTENSIONS FOR LUMINA FEATURES ===
+// These models extend the canonical schema with project, document, and wiki capabilities.
+
+// Project (ResourceAggregate)
+model Project {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  startDate   DateTime @db.Timestamptz(6)
+  endDate     DateTime? @db.Timestamptz(6)
+  status      ProjectStatus @default(planned) // planned, en cours, terminé, archivé
+  org_id      String   @map("org_id") @db.Uuid
+  createdBy   String   @db.VarChar(255)
+  memberCount Int    @default(0)
+  createdAt   DateTime @db.Timestamptz(6) @default(now())
+  updatedAt   DateTime @db.Timestamptz(6) @updatedAt
+
+  org Organization @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
+
+  @@index([org_id])
+  @@map("projects")
+}
+
+// ProjectStatus enum (must be defined in main schema or use string)
+// For custom extension, we rely on the same enum definition
+
+// Task (ResourceAggregate)
+model Task {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  priority    TaskPriority @default(medium) // haute, medium, basse
+  status TaskStatus @default(pending) // pending, en cours, terminé
+  projectId   String   @db.VarChar(255)
+  assignedToId String? @db.VarChar(255)
+  subtasks Json
+  createdBy   String   @db.VarChar(255)
+  createdAt   DateTime @db.Timestamptz(6) @default(now())
+  updatedAt   DateTime @db.Timestamptz(6) @updatedAt
+
+  @@map("tasks")
+}
+
+// TaskPriority enum: haute, medium, basse
+// TaskStatus enum: pending, en cours, terminé
+
+// Document (ResourceAggregate)
+model Document {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  fileName    String   @db.VarChar(255)
+  metadata    Json     @default("{}")
+  org_id      String   @map("org_id") @db.Uuid
+  createdBy   String   @db.VarChar(255)
+  version     Int      @default(1)
+  createdAt   DateTime @db.Timestamptz(6) @default(now())
+  updatedAt   DateTime @db.Timestamptz(6) @updatedAt
+
+  org Organization @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
+
+  @@index([org_id])
+  @@map("documents")
+}
+
+// WikiPage (ResourceAggregate)
+model WikiPage {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String   @db.VarChar(255)
+  content     String   @db.Text
+  parentId    String?  @db.VarChar(255)
+  org_id      String   @map("org_id") @db.Uuid
+  createdBy   String   @db.VarChar(255)
+  version     Int      @default(1)
+  createdAt   DateTime @db.Timestamptz(6) @default(now())
+  updatedAt   DateTime @db.Timestamptz(6) @updatedAt
+
+  org Organization @relation(fields: [org_id], references: [org_id], onDelete: Cascade)
+
+  @@index([org_id])
+  @@index([parentId])
+  @@map("wiki_pages")
+}
+
