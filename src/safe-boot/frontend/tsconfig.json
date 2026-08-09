@@ -22,7 +22,9 @@
       "@components/*": ["./src/components/*"],
       "@store/*": ["./src/store/*"],
       "@utils/*": ["./src/utils/*"],
-      "@i18n/*": ["./src/i18n/*"]
+      "@i18n/*": ["./src/i18n/*"],
+      // Phase B-6 : moteurs partagés (manifest, vocabulary, workflow, runtime) — racine src/shared
+      "@shared/*": ["../../../src/shared/*"]
     }
   },
   "include": ["src/**/*", "nativewind-env.d.ts"],
