@@ -6,15 +6,15 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import type { ITransactionPort, CreateTransactionInput, UpdateTransactionInput, TransactionQueryFilters } from '../../domains/finance/ports/finance-ports';
-import { ResourceId } from '../../domains/finance/value-objects/resource-id.vo';
-import { AmountInCents } from '../../domains/finance/value-objects/amount-in-cents.vo';
-import { TransactionState } from '../../domains/finance/value-objects/transaction-state.vo';
-import { ResourceScope } from '../../domains/finance/value-objects/resource-scope.vo';
-import { ResourceMetadata } from '../../domains/finance/value-objects/resource-metadata.vo';
-import { TransactionReference } from '../../domains/finance/value-objects/transaction-reference.vo';
-import { ResourceVersion } from '../../domains/finance/value-objects/resource-version.vo';
-import type { PaginatedResult } from '../../../shared/types';
+import type { ITransactionPort, CreateTransactionInput, UpdateTransactionInput, TransactionQueryFilters } from '../../../../domains/finance/ports/finance-ports';
+import { ResourceId } from '../../../../domains/finance/value-objects/resource-id.vo';
+import { AmountInCents } from '../../../../domains/finance/value-objects/amount-in-cents.vo';
+import { TransactionState } from '../../../../domains/finance/value-objects/transaction-state.vo';
+import { ResourceScope, ResourceScopeType } from '../../../../domains/finance/value-objects/resource-scope.vo';
+import { ResourceMetadata } from '../../../../domains/finance/value-objects/resource-metadata.vo';
+import { TransactionReference } from '../../../../domains/finance/value-objects/transaction-reference.vo';
+import { ResourceVersion } from '../../../../domains/finance/value-objects/resource-version.vo';
+import type { PaginatedResult } from '../../../../shared/types';
 
 // Prisma-generated types (stub for compile-time)
 declare const prisma: any;
@@ -182,7 +182,7 @@ export class TransactionPrismaAdapter implements ITransactionPort {
       state: row.statut as TransactionState,
       categoryRef: row.categorie_ref,
       scope: new ResourceScope(
-        row.portee_type as 'org' | 'group',
+        row.portee_type === 'group' ? ResourceScopeType.GROUP : ResourceScopeType.ORG,
         row.portee_cible_id,
       ),
       date: row.date_transaction ? new Date(row.date_transaction) : null,

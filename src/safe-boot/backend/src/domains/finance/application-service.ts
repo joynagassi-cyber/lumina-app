@@ -39,7 +39,18 @@ import {
 } from './domain-events';
 import { ResourceId } from './value-objects/resource-id.vo';
 import { TransactionState } from './value-objects/transaction-state.vo';
+import { TransactionType } from './entities/transaction-record.entity';
+import type { TransactionRecord } from './entities/transaction-record.entity';
 import type { PaginatedResult } from '../../shared/types';
+
+/** Bilan d'une période — entrées / sorties / résultat net, approuvées uniquement (BR-RPT-005). */
+export interface BalanceSummary {
+  totalIncomeCents: number;
+  totalExpenseCents: number;
+  netCents: number;
+  transactionCount: number;
+  period: { dateFrom?: Date; dateTo?: Date };
+}
 
 @Injectable()
 export class FinanceService {
@@ -54,7 +65,7 @@ export class FinanceService {
 
   // ====== Transaction Commands ======
 
-  async createTransaction(input: CreateTransactionInput): Promise<{ transaction: ReturnType<typeof this.transactionPort.create>; events: DomainEvent[] }> {
+  async createTransaction(input: CreateTransactionInput): Promise<{ transaction: TransactionRecord; events: DomainEvent[] }> {
     const entity = await this.transactionPort.create(input);
     const events: DomainEvent[] = [new ResourceCreated(entity.id, 'transaction', input.orgId)];
     if (input.compensatesFor) {
@@ -121,8 +132,65 @@ export class FinanceService {
     ]);
   }
 
-  async searchTransactions(filters: TransactionQueryFilters): Promise<PaginatedResult<unknown>> {
+  async searchTransactions(filters: TransactionQueryFilters): Promise<PaginatedResult<TransactionRecord>> {
     return this.transactionPort.findByOrgAndPage(filters);
+  }
+
+  /** Consulter une transaction par id (écran E4). */
+  async getTransaction(id: string): Promise<TransactionRecord> {
+    const resourceId = new ResourceId(id);
+    const entity = await this.transactionPort.findById(resourceId);
+    if (!entity) throw new Error(`Transaction ${id} not found`);
+    return entity;
+  }
+
+  /**
+   * Transition déclarative draft → pending → approved | rejected (mono-acteur J1).
+   * La machine à états est validée par le port (transitionState), pas ici.
+   */
+  async transitionTransaction(id: string, fromState: string, toState: string): Promise<TransactionRecord> {
+    const resourceId = new ResourceId(id);
+    const entity = await this.transactionPort.findById(resourceId);
+    if (!entity) throw new Error(`Transaction ${id} not found`);
+    const updated = await this.transactionPort.transitionState(resourceId, fromState, toState);
+    await this.publishEvents([new ResourceStateChanged(updated.id, 'transaction', fromState, toState)]);
+    return updated;
+  }
+
+  /**
+   * Bilan : entrées / sorties / résultat net sur les transactions APPROUVÉES
+   * seulement (BR-RPT-005). Filtres période, catégorie, groupe (portee_cible).
+   */
+  async getBalance(filters: {
+    orgId: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+    scopeTargetId?: string;
+    categoryRef?: string;
+  }): Promise<BalanceSummary> {
+    const result = await this.transactionPort.findByOrgAndPage({
+      orgId: filters.orgId,
+      state: TransactionState.APPROVED,
+      categoryRef: filters.categoryRef,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+      scopeTargetId: filters.scopeTargetId,
+      page: 1,
+      limit: 100_000,
+    });
+    let totalIncome = 0;
+    let totalExpense = 0;
+    for (const txn of result.data) {
+      if (txn.type === TransactionType.INCOME) totalIncome += txn.amount.value;
+      else if (txn.type === TransactionType.EXPENSE) totalExpense += txn.amount.value;
+    }
+    return {
+      totalIncomeCents: totalIncome,
+      totalExpenseCents: totalExpense,
+      netCents: totalIncome - totalExpense,
+      transactionCount: result.data.length,
+      period: { dateFrom: filters.dateFrom, dateTo: filters.dateTo },
+    };
   }
 
   async deleteTransaction(id: string): Promise<boolean> {

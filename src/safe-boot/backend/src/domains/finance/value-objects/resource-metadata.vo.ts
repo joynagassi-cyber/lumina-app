@@ -5,7 +5,11 @@
  * @invariant All keys are strings, values are serializable primitives or plain objects
  */
 
-export type MetadataValue = string | number | boolean | null | MetadataValue[] | Record<string, MetadataValue>;
+export interface MetadataMap {
+  [key: string]: MetadataValue;
+}
+
+export type MetadataValue = string | number | boolean | null | MetadataValue[] | MetadataMap;
 
 export class ResourceMetadata {
   private _data: Record<string, MetadataValue>;

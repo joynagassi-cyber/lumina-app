@@ -3,4 +3,4 @@
  */
 
 export { DomainEvent } from '../../../../shared/events';
-export type { DomainEventHandler } from '../../../../shared/events/handler.interface';
+export type { DomainEventHandler } from '../../../../shared/events';

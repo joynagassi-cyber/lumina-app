@@ -6,7 +6,8 @@
  */
 
 import { AmountInCents } from '../value-objects/amount-in-cents.vo';
-import { TransactionState, TransactionType } from '../value-objects/transaction-state.vo';
+import { TransactionState } from '../value-objects/transaction-state.vo';
+import { TransactionType } from '../entities/transaction-record.entity';
 import { ResourceScopeType } from '../value-objects/resource-scope.vo';
 import { ImmutabilityPolicy } from '../domain-policies/immutability-policy';
 import { ScopePolicy } from '../domain-policies/scope-policy';
@@ -59,10 +60,10 @@ export class ResourceValidator {
     newState: TransactionState,
   ): void {
     const allowedTransitions: Record<TransactionState, readonly TransactionState[]> = {
-      draft: ['pending'],
-      pending: ['approved', 'rejected'],
-      approved: [],
-      rejected: ['draft'],
+      [TransactionState.DRAFT]: [TransactionState.PENDING],
+      [TransactionState.PENDING]: [TransactionState.APPROVED, TransactionState.REJECTED],
+      [TransactionState.APPROVED]: [],
+      [TransactionState.REJECTED]: [TransactionState.DRAFT],
     };
     const allowed = allowedTransitions[currentState];
     if (!allowed?.includes(newState)) {

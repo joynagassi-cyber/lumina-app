@@ -105,7 +105,7 @@ export class MemberRecord {
   }
 
   private validateTransition(from: MemberState, to: MemberState): void {
-    const allowed = {
+    const allowed: Record<MemberState, readonly MemberState[]> = {
       [MemberState.ACTIVE]: [MemberState.INACTIVE, MemberState.DECEASED, MemberState.TRANSFERRED],
       [MemberState.INACTIVE]: [MemberState.ACTIVE],
       [MemberState.DECEASED]: [],

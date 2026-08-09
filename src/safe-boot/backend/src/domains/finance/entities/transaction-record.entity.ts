@@ -134,7 +134,7 @@ export class TransactionRecord {
     if (!validTargets.includes(to)) {
       throw new Error(`TransactionRecord: invalid state "${to}"`);
     }
-    const allowedTransitions = {
+    const allowedTransitions: Record<TransactionState, readonly TransactionState[]> = {
       [TransactionState.DRAFT]: [TransactionState.PENDING],
       [TransactionState.PENDING]: [TransactionState.APPROVED, TransactionState.REJECTED],
       [TransactionState.APPROVED]: [],
