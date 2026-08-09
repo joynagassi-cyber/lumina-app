@@ -5,9 +5,9 @@
  */
 
 import { Module, DynamicModule, Provider } from '@nestjs/common';
-import { LifecycleService } from '../application/lifecycle.service';
+import { LifecycleService } from './application/lifecycle.service';
 import { PrismaLifecycleRepository } from './infrastructure/adapters/prisma-lifecycle.repository';
-import type { IArchiveEntryPort, IPurgeSchedulePort } from '../ports/lifecycle.port';
+import type { IArchiveEntryPort, IPurgeSchedulePort } from './ports/lifecycle.port';
 
 const ArchiveEntryPortToken = 'IArchiveEntryPort' as const;
 const PurgeSchedulePortToken = 'IPurgeSchedulePort' as const;

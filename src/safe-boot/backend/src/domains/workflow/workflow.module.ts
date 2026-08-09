@@ -11,24 +11,24 @@
  */
 
 import { Module, DynamicModule, Provider } from '@nestjs/common';
-import { WorkflowService } from '../application/workflow.service';
+import { WorkflowService } from './application/workflow.service';
 import {
   PrismaWorkflowInstanceRepository,
   PrismaWorkflowStepRepository,
   PrismaWorkflowLogRepository,
-} from './repositories/prisma-workflow.repository';
+} from './infrastructure/repositories/prisma-workflow.repository';
 
 import type {
   IWorkflowInstanceRepository,
   IWorkflowStepRepository,
   IWorkflowLogRepository,
-} from '../ports/repository.port';
-import type { IEventPublicationPort } from '../ports/event-pub.port';
-import type { IAuthorizationPort } from '../ports/auth.port';
-import type { IClockPort } from '../ports/clock.port';
-import type { IUuidPort } from '../ports/uuid.port';
-import type { IAuditPort } from '../ports/audit.port';
-import type { ILoggerPort } from '../ports/logging.port';
+} from './ports/repository.port';
+import type { IEventPublicationPort } from '../organization/ports/event-pub.port';
+import type { IAuthorizationPort } from '../organization/ports/auth.port';
+import type { IClockPort } from '../organization/ports/clock.port';
+import type { IUuidPort } from '../organization/ports/uuid.port';
+import type { IAuditPort } from '../organization/ports/audit.port';
+import type { ILoggerPort } from '../organization/ports/logging.port';
 
 // ---- Injection tokens (interface-based per PA-NB-002) ----
 

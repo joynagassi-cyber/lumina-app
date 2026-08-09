@@ -5,9 +5,9 @@
  */
 
 import { Module, DynamicModule, Provider } from '@nestjs/common';
-import { ConfigurationService } from '../application/configuration.service';
+import { ConfigurationService } from './application/configuration.service';
 import { PrismaConfigurationRepository } from './infrastructure/adapters/prisma-configuration.repository';
-import type { ISettingPort } from '../ports/configuration.port';
+import type { ISettingPort } from './ports/configuration.port';
 
 const SettingPortToken = 'ISettingPort' as const;
 

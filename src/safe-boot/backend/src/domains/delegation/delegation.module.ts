@@ -13,10 +13,10 @@ import { PrismaGrantRepository } from './infrastructure/adapters/prisma-grant.re
 import { AuthorizationAdapter } from './infrastructure/adapters/authorization.adapter';
 import { AuditLoggerAdapter } from './infrastructure/adapters/audit-log.adapter';
 import { EventBusAdapter } from './infrastructure/adapters/event-bus.adapter';
-import type { IGrantRepository } from '../ports/delegation.ports';
-import type { IAuthorizationPort } from '../ports/delegation.ports';
-import type { IAuditLogger } from '../ports/delegation.ports';
-import type { IEventPublisherPort } from '../ports/delegation.ports';
+import type { IGrantRepository } from './ports/delegation.ports';
+import type { IAuthorizationPort } from './ports/delegation.ports';
+import type { IAuditLogger } from './ports/delegation.ports';
+import type { IEventPublisherPort } from './ports/delegation.ports';
 import type { PrismaClient } from '@prisma/client';
 
 // ---- Injection tokens ----
@@ -113,4 +113,4 @@ export { GrantCreated, GrantApproved, GrantExpired, GrantRevoked } from './domai
 export { CircularDelegationError, DurationExceededError, SuperadminDelegationError, NonTransitiveError, CapabilityValidationError } from './domain/policies/delegation-errors';
 
 // Re-export port types
-export type { IGrantRepository, IAuthorizationPort, IAuditLogger, IEventPublisherPort, GrantEntryProps } from '../ports/delegation.ports';
+export type { IGrantRepository, IAuthorizationPort, IAuditLogger, IEventPublisherPort, GrantEntryProps } from './ports/delegation.ports';

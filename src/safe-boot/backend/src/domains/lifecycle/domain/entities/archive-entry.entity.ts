@@ -44,7 +44,9 @@ export class ArchiveEntry {
 
   private constructor(private readonly props: ArchiveEntryProps) {}
 
-  static create(params: Omit<ArchiveEntryProps, 'id' | 'version' | 'createdAt' | 'updatedAt'>): ArchiveEntry {
+  static create(
+    params: Omit<ArchiveEntryProps, 'id' | 'version' | 'createdAt' | 'updatedAt'> & { id?: string },
+  ): ArchiveEntry {
     const now = new Date();
     return new ArchiveEntry({
       ...params,

@@ -8,7 +8,9 @@ import { Request } from 'express';
 @Injectable()
 export class OrganizationGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: { orgId?: string } }>();
     // orgId is injected by auth middleware; if missing, deny access
     return !!request.user?.orgId;
   }

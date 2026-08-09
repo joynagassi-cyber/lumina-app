@@ -6,9 +6,10 @@
 
 import { IRemoteApiPort } from '../ports/remote-api-port.interface';
 import { ISyncStatusRepositoryPort } from '../ports/sync-status-repository-port.interface';
-import { IPendingOperationsPort } from '../ports/pending-operations-port.interface';
+import type { IPendingOperationsPort } from '../ports/pending-operations-port.interface';
 import { SyncStatus } from '../value-objects/sync-status.vo';
-import { ConflictResolutionPolicy, ConflictStrategy } from '../policies/conflict-resolution-policy';
+import { ConflictResolutionPolicy } from '../policies/conflict-resolution-policy';
+import { ConflictStrategy } from '../value-objects/conflict-strategy.vo';
 import { PendingOperation, PendingOperationData } from '../entities/pending-operation.entity';
 import { SyncAction } from '../value-objects/sync-action.vo';
 import { OperationPayload } from '../value-objects/operation-payload.vo';

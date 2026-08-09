@@ -69,6 +69,16 @@ export class SessionRevokedEvent extends DomainEvent {
   }
 }
 
+export class SessionExpired extends DomainEvent {
+  constructor(
+    public readonly sessionId: string,
+    public readonly userId: string,
+    occurredAt?: Date,
+  ) {
+    super('SessionExpired', occurredAt);
+  }
+}
+
 export class MfaEnabled extends DomainEvent {
   constructor(
     public readonly userId: string,

@@ -11,6 +11,7 @@ import {
   IRemoteApiPort,
   PushBatchResponse,
   DeltaPullResponse,
+  ConflictRecord,
 } from '@domains/sync/ports/remote-api-port.interface';
 
 @Injectable()
@@ -48,7 +49,7 @@ export class HttpRemoteApiClient implements IRemoteApiPort {
 
       return {
         pushed: (data.pushed as number) ?? operations.length,
-        conflicts: (data.conflicts as unknown[]) as Array<unknown>,
+        conflicts: (data.conflicts ?? []) as ConflictRecord[],
         errors: (data.errors as string[]) ?? [],
       };
     } catch (err) {
@@ -84,7 +85,7 @@ export class HttpRemoteApiClient implements IRemoteApiPort {
       const data = (await response.json()) as Record<string, unknown>;
 
       return {
-        changes: (data.changes as unknown[]) as Array<unknown>,
+        changes: (data.changes ?? []) as DeltaPullResponse['changes'],
         since: new Date(data.since as string) ?? sinceTimestamp,
       };
     } catch (err) {

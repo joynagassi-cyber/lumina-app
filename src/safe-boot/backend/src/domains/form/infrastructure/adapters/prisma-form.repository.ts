@@ -9,8 +9,9 @@
  *   → PAS-003 DR-007 (Persistence Ignorance)
  */
 
-import { FormDefinition } from '../../../domain/entities/form-definition.entity';
-import { FormVersion } from '../../../domain/value-objects/form-version.vo';
+import { FormDefinition } from '../../domain/entities/form-definition.entity';
+import { FormVersion } from '../../domain/value-objects/form-version.vo';
+import type { SectionDef } from '../../domain/value-objects/section-def.vo';
 import type {
   IFormRepository,
   FormSectionRow,
@@ -30,19 +31,7 @@ export class PrismaFormRepository implements IFormRepository {
     const result = await this._queryFormWithChildren(definitionId, requestOrgId);
     if (!result) return null;
 
-    return {
-      orgId: String(result.org_id),
-      cleFormulaire: String(result.cle_formulaire),
-      referenceModele: String(result.reference_modele),
-      versionSemantique: String(result.version_semantique),
-      estPublie: Boolean(result.est_publie),
-      publiePar: result.publie_par ? String(result.publie_par) : null,
-      datePremierePublication: result.date_premiere_publication ? new Date(String(result.date_premiere_publication)) : null,
-      dateDernierePublication: result.date_derniere_publication ? new Date(String(result.date_derniere_publication)) : null,
-      created_at: new Date(String(result.created_at)),
-      sections: (result.sections ?? []) as FormSectionRow[],
-      fields: (result.fields ?? []) as FormFieldRow[],
-    };
+    return this._toDomain(result);
   }
 
   async findByKeyAndVersion(
@@ -53,19 +42,7 @@ export class PrismaFormRepository implements IFormRepository {
     const result = await this._queryFormByKey(key, version, requestOrgId);
     if (!result) return null;
 
-    return {
-      orgId: String(result.org_id),
-      cleFormulaire: String(result.cle_formulaire),
-      referenceModele: String(result.reference_modele),
-      versionSemantique: String(result.version_semantique),
-      estPublie: Boolean(result.est_publie),
-      publiePar: result.publie_par ? String(result.publie_par) : null,
-      datePremierePublication: result.date_premiere_publication ? new Date(String(result.date_premiere_publication)) : null,
-      dateDernierePublication: result.date_derniere_publication ? new Date(String(result.date_derniere_publication)) : null,
-      created_at: new Date(String(result.created_at)),
-      sections: (result.sections ?? []) as FormSectionRow[],
-      fields: (result.fields ?? []) as FormFieldRow[],
-    };
+    return this._toDomain(result);
   }
 
   async listByOrg(requestOrgId: string): Promise<Array<{
@@ -107,6 +84,30 @@ export class PrismaFormRepository implements IFormRepository {
   async deleteByDefinitionId(definitionId: string, _requestOrgId: string): Promise<void> {
     // CASCADE: deleting a form definition cascades to form_sections and form_fields
     throw new Error('PrismaFormRepository.deleteByDefinitionId requires a PrismaClient instance.');
+  }
+
+  // ---- Row → domain conversion ----
+
+  private _toDomain(result: Record<string, unknown>): FormDefinitionWithSections {
+    const definition = new FormDefinition({
+      id: String(result.id),
+      orgId: String(result.org_id),
+      key: String(result.cle_formulaire),
+      modelRef: String(result.reference_modele),
+      version: new FormVersion(String(result.version_semantique)),
+      isPublished: Boolean(result.est_publie),
+      publishedBy: result.publie_par ? String(result.publie_par) : undefined,
+      publishedAt: result.date_premiere_publication ? new Date(String(result.date_premiere_publication)) : undefined,
+      createdAt: new Date(String(result.created_at)),
+      updatedAt: new Date(String(result.updated_at ?? result.created_at)),
+      sections: ((result.sections ?? []) as SectionDef[]),
+    });
+
+    return {
+      definition,
+      sections: (result.sections ?? []) as FormSectionRow[],
+      fields: (result.fields ?? []) as FormFieldRow[],
+    };
   }
 
   // ---- Persistence conversion ----

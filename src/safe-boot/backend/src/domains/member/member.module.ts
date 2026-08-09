@@ -10,6 +10,7 @@ import { MemberService } from './application/member.service';
 import { PrismaGroupMembershipRepository } from './infrastructure/adapters/prisma-group-membership.repository';
 import { PrismaOrgUnitLinkRepository } from './infrastructure/adapters/prisma-org-unit-link.repository';
 import type { PrismaClientLike } from './infrastructure/adapters/prisma-group-membership.repository';
+import type { PrismaClientLike as LinkPrismaLike } from './infrastructure/adapters/prisma-org-unit-link.repository';
 
 /**
  * Dynamic module factory that receives a Prisma client instance.
@@ -25,7 +26,7 @@ export class MemberModule {
 
     const orgUnitLinkProvider = {
       provide: 'IOrgUnitLinkRepository',
-      useValue: new PrismaOrgUnitLinkRepository(prisma),
+      useValue: new PrismaOrgUnitLinkRepository(prisma as unknown as LinkPrismaLike),
     };
 
     return {

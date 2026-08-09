@@ -14,13 +14,14 @@ import type {
   ICredentialRepository,
 } from '../ports/auth.port';
 import type { IJwtServicePort } from '../infrastructure/adapters/jwt.adapter';
-import type { IUserRepository } from '../user/ports/user.port';
-import type { IAuthorizationPort } from '../organization/ports/auth.port';
-import type { IEventPublisherPort } from '../organization/ports/event-pub.port';
+import type { IUserRepository } from '../../user/ports';
+import type { IAuthorizationPort } from '../../organization/ports/auth.port';
+import type { IEventPublicationPort } from '../../organization/ports/event-pub.port';
 import { TokenValidator, type TokenPayload, type TokenPair } from '../domain/services/token-validator.service';
 import { SessionManager } from '../domain/services/session-manager.service';
 import { MfaService } from '../domain/services/mfa-service';
 import { DEFAULT_JWT_POLICY, type JwtPolicy } from '../domain/policies/jwt-policy';
+import type { DomainEvent } from '@shared/events';
 import {
   LoginAttempted,
   LoginSucceeded,
@@ -78,7 +79,7 @@ export class AuthService {
     private readonly _jwtAdapter: IJwtServicePort,
     private readonly _userRepository: IUserRepository,
     private readonly _authzPort: IAuthorizationPort,
-    private readonly _eventPublisher: IEventPublisherPort,
+    private readonly _eventPublisher: IEventPublicationPort,
     private readonly _mfaService: MfaService,
     jwtPolicy?: JwtPolicy,
   ) {
@@ -98,7 +99,7 @@ export class AuthService {
       command.orgId,
       command.ipAddress,
     );
-    await this._eventPublisher.publish(attempt);
+    await this._publish(attempt);
 
     // Look up user by email + org_id
     const user = await this._userRepository.findByEmail(command.orgId, command.email);
@@ -110,7 +111,7 @@ export class AuthService {
     // Check credential lock status
     const creds = await this._credentialRepo.getByUserId(user.id);
     if (creds?.isLocked) {
-      await this._eventPublisher.publish(
+      await this._publish(
         new LoginFailed(command.email, command.orgId, 'account_locked'),
       );
       throw new Error('Account is locked due to too many failed attempts');
@@ -123,7 +124,7 @@ export class AuthService {
     );
     if (!passwordMatches) {
       await this._credentialRepo.incrementFailedAttempts(user.id);
-      await this._eventPublisher.publish(
+      await this._publish(
         new LoginFailed(command.email, command.orgId, 'invalid_password'),
       );
       throw new Error('Invalid credentials');
@@ -149,9 +150,13 @@ export class AuthService {
     });
 
     // Issue tokens
-    const tokenPair = this._issueTokenPair(user);
+    const tokenPair = this._issueTokenPair({
+      id: user.id,
+      orgId: user.orgId,
+      role: user.role.toString(),
+    });
 
-    await this._eventPublisher.publish(
+    await this._publish(
       new LoginSucceeded(user.id, sessionId, command.orgId, 'access'),
     );
 
@@ -195,7 +200,7 @@ export class AuthService {
 
     const newTokenPair = this._issueTokenPairForUser(sessionData.userId, sessionData.orgId);
 
-    await this._eventPublisher.publish(
+    await this._publish(
       new TokenRefreshed(
         sessionData.userId,
         sessionData.sessionId,
@@ -218,7 +223,7 @@ export class AuthService {
   async logout(command: { sessionId: string; userId: string }): Promise<void> {
     await this._sessionRepo.revokeById(command.sessionId);
 
-    await this._eventPublisher.publish(
+    await this._publish(
       new SessionRevokedEvent(
         command.sessionId,
         command.userId,
@@ -237,7 +242,7 @@ export class AuthService {
       throw new Error('Session not found');
     }
 
-    await this._eventPublisher.publish(
+    await this._publish(
       new SessionRevokedEvent(
         command.sessionId,
         command.revokedBy,
@@ -321,19 +326,30 @@ export class AuthService {
     });
   }
 
+  /**
+   * Adapte un événement de domaine (classe partagée @shared/events) au contrat
+   * du port de publication (interface DomainEvent du domaine organisation).
+   */
+  private async _publish(event: DomainEvent): Promise<void> {
+    const record = event as unknown as Record<string, unknown>;
+    await this._eventPublisher.publish({
+      aggregateId: String(record.sessionId ?? record.userId ?? event.eventType),
+      eventType: event.eventType,
+      timestamp: event.occurredAt,
+      payload: record,
+    });
+  }
+
   private async _verifyPassword(password: string, storedHash: string): Promise<boolean> {
     // Delegate to bcrypt adapter — injected via user module
-    if (typeof (globalThis as unknown as Record<string, unknown>)._bcryptCompare === 'function') {
-      return (globalThis as unknown as Record<string, unknown>)._bcryptCompare as (
-        pw: string,
-        hash: string,
-      ) => Promise<boolean>>(password, storedHash);
-    }
-    return false;
+    const compare = (globalThis as unknown as Record<string, unknown>)._bcryptCompare as
+      | ((pw: string, hash: string) => Promise<boolean>)
+      | undefined;
+    return compare ? compare(password, storedHash) : false;
   }
 
   private async _recordFailedLogin(email: string, orgId: string, reason: string): Promise<void> {
-    await this._eventPublisher.publish(
+    await this._publish(
       new LoginFailed(email, orgId, reason as LoginFailed['reason']),
     );
   }

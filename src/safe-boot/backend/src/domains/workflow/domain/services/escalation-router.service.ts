@@ -11,8 +11,8 @@
  */
 
 import type { EscalationRule } from '../value-objects/escalation-rule.vo';
-import type { WorkflowStep } from '../domain/entities/workflow-step.entity';
-import type { WorkflowInstance } from '../domain/entities/workflow-instance.entity';
+import type { WorkflowStep } from '../entities/workflow-step.entity';
+import type { WorkflowInstance } from '../entities/workflow-instance.entity';
 
 export interface EscalationTarget {
   /** Role(s) to escalate to. */

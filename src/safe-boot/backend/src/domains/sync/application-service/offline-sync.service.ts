@@ -186,7 +186,7 @@ export class OfflineSyncService {
       null,
     );
 
-    const isOnline = trackers.every((t) => t.etat_connection === 'online');
+    const isOnline = trackers.every((t) => t.connectionState === 'online');
 
     return {
       isConnected: isOnline,
@@ -213,7 +213,7 @@ export class OfflineSyncService {
 
     return {
       lastSyncTimestamp: tracker.lastSyncTimestamp,
-      connectionState: tracker.etat_connection,
+      connectionState: tracker.connectionState,
       lastPushTimestamp: tracker.lastPushTimestamp,
       lastPullTimestamp: tracker.lastPullTimestamp,
     };

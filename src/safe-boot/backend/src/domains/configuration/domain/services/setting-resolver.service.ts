@@ -8,7 +8,7 @@ import { DEFAULT_SETTINGS } from '../entities/setting-entry.entity';
 import type { TypedSettingValue } from '../value-objects/setting-value.vo';
 
 export interface ISettingStore {
-  getKey(key: string): TypedSettingValue | undefined;
+  getKey(key: string): Promise<TypedSettingValue | undefined>;
 }
 
 /**
@@ -19,8 +19,8 @@ export class SettingResolver {
   constructor(private readonly store: ISettingStore) {}
 
   /** Resolve a single setting value. Falls back to default if not found. */
-  resolve(key: string): TypedSettingValue {
-    const stored = this.store.getKey(key);
+  async resolve(key: string): Promise<TypedSettingValue> {
+    const stored = await this.store.getKey(key);
     if (stored !== undefined) return stored;
     const defaultValue = DEFAULT_SETTINGS[key];
     if (defaultValue !== undefined) return defaultValue;
@@ -28,18 +28,18 @@ export class SettingResolver {
   }
 
   /** Resolve all settings, merging overrides with defaults. */
-  resolveAll(): Record<string, TypedSettingValue> {
+  async resolveAll(): Promise<Record<string, TypedSettingValue>> {
     const result: Record<string, TypedSettingValue> = {};
     for (const [key, defaultValue] of Object.entries(DEFAULT_SETTINGS)) {
-      const stored = this.store.getKey(key);
+      const stored = await this.store.getKey(key);
       result[key] = stored !== undefined ? stored : defaultValue;
     }
     return result;
   }
 
   /** Check if a setting has been explicitly overridden. */
-  isOverridden(key: string): boolean {
-    return this.store.getKey(key) !== undefined && key in DEFAULT_SETTINGS;
+  async isOverridden(key: string): Promise<boolean> {
+    return (await this.store.getKey(key)) !== undefined && key in DEFAULT_SETTINGS;
   }
 }
 

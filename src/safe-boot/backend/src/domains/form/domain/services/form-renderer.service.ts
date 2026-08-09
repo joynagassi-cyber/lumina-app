@@ -9,9 +9,9 @@
  *   → BR-FRM-003 (visible_if conditions supported)
  */
 
-import { FieldDef } from '../domain/value-objects/field-def.vo';
-import type { SectionDef } from '../domain/value-objects/section-def.vo';
-import { FormDefinition, PublishedFormModificationError } from '../domain/entities/form-definition.entity';
+import { FieldDef } from '../value-objects/field-def.vo';
+import type { SectionDef } from '../value-objects/section-def.vo';
+import { FormDefinition, PublishedFormModificationError } from '../entities/form-definition.entity';
 
 export interface ComponentNode {
   readonly componentName: string;

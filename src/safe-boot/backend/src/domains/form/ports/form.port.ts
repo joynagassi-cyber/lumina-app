@@ -9,6 +9,8 @@
  *   -> PAS-005 PA-NB-007 (RepositoryAbstraction -- persistence metadata stripped at boundary)
  */
 
+import type { FormDefinition } from '../domain/entities/form-definition.entity';
+
 export interface FormDefinitionWithSections {
   definition: FormDefinition;
   sections: FormSectionRow[];

@@ -9,19 +9,20 @@
  */
 
 import { Module } from '@nestjs/common';
-import { I_CHANNEL_PORT } from '../ports/channel.port';
-import type { INotificationRepository } from '../ports/notification-repository.port';
-import { INOTIFICATION_REPOSITORY } from '../ports/notification-repository.port';
-import { NotificationService } from '../application/notification.service';
-import { NotificationRouter, type INotificationRouter } from '../domain/services/notification-router.service';
-import { RateLimitEnforcer, type INotificationRateLimiter } from '../domain/services/rate-limit-enforcer.service';
-import { QuietHoursPolicy } from '../domain/policies/quiet-hours-policy';
-import { ChannelPreferencePolicy } from '../domain/policies/channel-preference-policy';
-import { NoUntriggeredNotificationPolicy } from '../domain/policies/untriggered-notification-policy';
-import { InAppChannelAdapter } from './adapters/in-app-channel.adapter';
-import { PushChannelAdapter } from './adapters/push-channel.adapter';
-import { EmailChannelAdapter } from './adapters/email-channel.adapter';
-import { NotificationRepository } from './adapters/notification.repository';
+import { I_CHANNEL_PORT } from './ports/channel.port';
+import type { ChannelPort } from './ports/channel.port';
+import type { INotificationRepository } from './ports/notification-repository.port';
+import { INOTIFICATION_REPOSITORY } from './ports/notification-repository.port';
+import { NotificationService } from './application/notification.service';
+import { NotificationRouter, type INotificationRouter } from './domain/services/notification-router.service';
+import { RateLimitEnforcer, type INotificationRateLimiter } from './domain/services/rate-limit-enforcer.service';
+import { QuietHoursPolicy } from './domain/policies/quiet-hours-policy';
+import { ChannelPreferencePolicy } from './domain/policies/channel-preference-policy';
+import { NoUntriggeredNotificationPolicy } from './domain/policies/untriggered-notification-policy';
+import { InAppChannelAdapter } from './infrastructure/adapters/in-app-channel.adapter';
+import { PushChannelAdapter } from './infrastructure/adapters/push-channel.adapter';
+import { EmailChannelAdapter } from './infrastructure/adapters/email-channel.adapter';
+import { NotificationRepository } from './infrastructure/adapters/notification.repository';
 
 // Token for the user/org org-resolver needed by the repository.
 const USER_ORG_RESOLVER = 'USER_ORG_RESOLVER';
@@ -61,7 +62,7 @@ export const INOTIFICATION_RATE_LIMITER = 'INOTIFICATION_RATE_LIMITER';
     {
       provide: 'CHANNEL_PORT_MAP',
       useFactory: (inApp: InAppChannelAdapter, push: PushChannelAdapter, email: EmailChannelAdapter) =>
-        new Map([
+        new Map<string, ChannelPort>([
           ['in_app', inApp],
           ['push', push],
           ['email', email],

@@ -12,13 +12,13 @@ import { PrismaInvitationRepository } from './infrastructure/adapters/prisma-inv
 import { TokenService } from './infrastructure/adapters/token.service';
 import NotificationAdapter from './infrastructure/adapters/notification.adapter';
 import { InviteService } from './application/invite-service';
-import { IInviteRepository, ITokenService } from '../ports';
-import type { InviteId } from '../domain/value-objects/invite-id.vo';
-import type { InviteToken } from '../domain/value-objects/invite-token.vo';
-import type { InviteStatus } from '../domain/value-objects/invite-status.enum';
-import type { InviteType } from '../domain/value-objects/invite-type.enum';
-import type { InviteScope } from '../domain/value-objects/invite-scope.vo';
-import type { Invite } from '../domain/entities/invite.entity';
+import { IInviteRepository, ITokenService } from './ports';
+import type { InviteId } from './domain/value-objects/invite-id.vo';
+import type { InviteToken } from './domain/value-objects/invite-token.vo';
+import type { InviteStatus } from './domain/value-objects/invite-status.enum';
+import type { InviteType } from './domain/value-objects/invite-type.enum';
+import type { InviteScope } from './domain/value-objects/invite-scope.vo';
+import type { Invite } from './domain/entities/invite.entity';
 import type { PrismaClient } from '@prisma/client';
 
 // Export domain types for external use
@@ -26,6 +26,8 @@ export { Invite };
 export type { InviteId, InviteToken, InviteStatus, InviteType, InviteScope, PrismaInvitationRepository, TokenService, NotificationAdapter };
 
 const PRISMA_CLIENT = 'PRISMA_CLIENT';
+const IINVITE_REPOSITORY = 'IInviteRepository';
+const ITOKEN_SERVICE = 'ITokenService';
 const IIPERMISSION_RESOLVER = 'IPermissionResolver';
 const IDOMAIN_EVENT_EMITTER = 'IDomainEventEmitter';
 
@@ -57,11 +59,11 @@ export class InviteModule {
       },
       // Port interface bindings
       {
-        provide: IInviteRepository,
+        provide: IINVITE_REPOSITORY,
         useClass: PrismaInvitationRepository,
       },
       {
-        provide: ITokenService,
+        provide: ITOKEN_SERVICE,
         useClass: TokenService,
       },
       // DI tokens for external dependencies
@@ -82,7 +84,7 @@ export class InviteModule {
           permResolver: any,
           evtEmitter: any
         ) => new InviteService(repo, tokenSvc, permResolver, evtEmitter),
-        inject: [IInviteRepository, ITokenService, IIPERMISSION_RESOLVER, IDOMAIN_EVENT_EMITTER],
+        inject: [IINVITE_REPOSITORY, ITOKEN_SERVICE, IIPERMISSION_RESOLVER, IDOMAIN_EVENT_EMITTER],
       },
     ];
 
@@ -91,8 +93,8 @@ export class InviteModule {
       providers,
       exports: [
         InviteService,
-        IInviteRepository,
-        ITokenService,
+        IINVITE_REPOSITORY,
+        ITOKEN_SERVICE,
         PrismaInvitationRepository,
         TokenService,
         NotificationAdapter,

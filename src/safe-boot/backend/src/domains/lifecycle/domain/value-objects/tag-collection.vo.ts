@@ -46,10 +46,22 @@ export class TagCollection {
     return new TagCollection(Array.from(next));
   }
 
+  addMany(tags: string[]): TagCollection {
+    const next = new Set<string>(this._tags);
+    tags.forEach((t) => next.add(t.trim().toLowerCase()));
+    return new TagCollection(Array.from(next));
+  }
+
   remove(tag: string): TagCollection {
     const filtered = Array.from(this._tags).filter(
       (t) => t !== tag.trim().toLowerCase(),
     );
+    return new TagCollection(filtered);
+  }
+
+  removeMany(tagsToRemove: string[]): TagCollection {
+    const removalSet = new Set(tagsToRemove.map((t) => t.trim().toLowerCase()));
+    const filtered = Array.from(this._tags).filter((t) => !removalSet.has(t));
     return new TagCollection(filtered);
   }
 

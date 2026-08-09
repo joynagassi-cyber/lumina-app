@@ -26,7 +26,7 @@ import {
   DescendantEnumerationRequested,
 } from '../domain/events';
 import type { MembershipRole } from '../domain/value-objects/membership-role.vo';
-import type { DomainEventHandler } from '../../../../shared/events';
+import type { DomainEvent, DomainEventHandler } from '../../../shared/events';
 
 export interface MemberCommandResult {
   success: boolean;
@@ -169,11 +169,11 @@ export class MemberService {
     const childMemberships = await this.groupMembershipRepo.listByGroup(childOrgUnitUuid, orgId);
 
     // Transfer parent link (reparent under sibling's parent)
-    await this.orgUnitLinkRepo.updateParent(childOrgUnitUuid, siblingParentUuid);
+    await this.orgUnitLinkRepo.updateParent(childOrgUnitUuid, siblingParentUuid ?? null);
 
     // Recalculate depth for the transferred subtree
     let newDepth = 1;
-    if (siblingParentUuid !== null) {
+    if (siblingParentUuid != null) {
       const parentLink = await this.orgUnitLinkRepo.findParent(siblingParentUuid, orgId);
       const parentDepth = parentLink?.depthLevel ?? 1;
       newDepth = MaxDepthPolicy.computeChildDepth(parentDepth, childOrgUnitUuid);

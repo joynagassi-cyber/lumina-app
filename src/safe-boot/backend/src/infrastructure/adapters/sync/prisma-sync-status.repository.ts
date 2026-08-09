@@ -30,24 +30,24 @@ export class PrismaSyncStatusRepository implements ISyncStatusRepositoryPort {
   async upsert(record: Omit<SyncStatusRecord, 'id'>): Promise<void> {
     await this.prisma.syncStatus.upsert({
       where: {
-        org_id_table_reference: {
-          org_id: record.org_id,
-          table_reference: record.table_reference,
+        table_reference_org_id: {
+          table_reference: record.tableRef,
+          org_id: record.orgId,
         },
       },
       create: {
-        org_id: record.org_id,
-        table_reference: record.table_reference,
-        derniere_synchro_timestamp: record.derniere_synchro_timestamp ?? new Date(),
-        etat_connection: record.etat_connection,
-        derniere_operation_push: record.derniere_operation_push,
-        derniere_operation_pull: record.derniere_operation_pull,
+        org_id: record.orgId,
+        table_reference: record.tableRef,
+        derniere_synchro_timestamp: record.lastSyncTimestamp ?? new Date(),
+        etat_connection: record.connectionState,
+        derniere_operation_push: record.lastPushTimestamp,
+        derniere_operation_pull: record.lastPullTimestamp,
       },
       update: {
-        derniere_synchro_timestamp: record.derniere_synchro_timestamp ?? undefined,
-        etat_connection: record.etat_connection,
-        derniere_operation_push: record.derniere_operation_push ?? undefined,
-        derniere_operation_pull: record.derniere_operation_pull ?? undefined,
+        derniere_synchro_timestamp: record.lastSyncTimestamp ?? undefined,
+        etat_connection: record.connectionState,
+        derniere_operation_push: record.lastPushTimestamp ?? undefined,
+        derniere_operation_pull: record.lastPullTimestamp ?? undefined,
       },
     });
   }
@@ -113,12 +113,12 @@ export class PrismaSyncStatusRepository implements ISyncStatusRepositoryPort {
   }): SyncStatusRecord {
     return {
       id: raw.id,
-      org_id: raw.org_id,
-      table_reference: raw.table_reference,
-      dernier_synchro_timestamp: raw.derniere_synchro_timestamp,
-      etat_connection: raw.etat_connection as ConnectionState,
-      derniere_operation_push: raw.derniere_operation_push,
-      derniere_operation_pull: raw.derniere_operation_pull,
+      orgId: raw.org_id,
+      tableRef: raw.table_reference,
+      lastSyncTimestamp: raw.derniere_synchro_timestamp,
+      connectionState: raw.etat_connection as ConnectionState,
+      lastPushTimestamp: raw.derniere_operation_push,
+      lastPullTimestamp: raw.derniere_operation_pull,
     };
   }
 }

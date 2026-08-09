@@ -8,8 +8,8 @@
 import type {
   ISettingPort,
   SettingRecord,
-} from '../ports/configuration.port';
-import { DEFAULT_SETTINGS } from '../domain/entities/setting-entry.entity';
+} from '../../ports/configuration.port';
+import { DEFAULT_SETTINGS } from '../../domain/entities/setting-entry.entity';
 
 export class PrismaConfigurationRepository implements ISettingPort {
   constructor(private readonly prisma: unknown) {}
@@ -17,7 +17,7 @@ export class PrismaConfigurationRepository implements ISettingPort {
   async create(record: Omit<SettingRecord, 'id' | 'mis_a_jour_le'>): Promise<string> {
     const data = { ...record };
     await this.prismaExecute('create', 'settings', data);
-    return String(data.id ?? '');
+    return String((data as { id?: string }).id ?? '');
   }
 
   async findByKeyAndOrg(

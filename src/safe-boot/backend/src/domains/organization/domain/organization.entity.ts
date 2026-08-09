@@ -21,7 +21,7 @@ export interface OrganizationProps {
   readonly name: OrganizationName;
   readonly shortName?: string;  // nom_court — optional
   readonly type: OrganizationType;
-  readonly status: OrganizationStatus;
+  status: OrganizationStatus;
   readonly currencyCode: string;  // devise_iso4217
   readonly timezone: string;      // fuseau_horaire
   readonly language: string;      // langue_privee

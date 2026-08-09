@@ -11,8 +11,8 @@
  */
 
 import { StepType } from '../value-objects/step-type.vo';
-import { WorkflowStepStatus } from '../domain/entities/workflow-step.entity';
-import type { WorkflowStep } from '../domain/entities/workflow-step.entity';
+import { WorkflowStepStatus } from '../entities/workflow-step.entity';
+import type { WorkflowStep } from '../entities/workflow-step.entity';
 
 export interface ExecutionResult {
   readonly success: boolean;

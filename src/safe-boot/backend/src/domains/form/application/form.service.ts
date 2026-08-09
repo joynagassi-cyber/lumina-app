@@ -21,12 +21,12 @@ import { NoHardcodedFormPolicy } from '../domain/policies/no-hardcoded-form.poli
 import { SensitiveFormLockPolicy } from '../domain/policies/sensitive-form-lock.policy';
 import { VisibilityPolicy } from '../domain/policies/visibility-policy';
 
-import type { IFormRepository, FormFieldRow, FormSectionRow, FindFormDefinitionByIdResult } from '../ports/form.port';
+import type { IFormRepository, FormFieldRow, FormSectionRow } from '../ports/form.port';
 import type { IEventPublicationPort, DomainEvent } from '../ports/event-pub.port';
-import type { IAuthorizationPort, RoleType } from '../ports/auth.port';
-import type { IClockPort } from '../ports/clock.port';
-import type { IUuidPort } from '../ports/uuid.port';
-import type { IAuditPort } from '../ports/audit.port';
+import type { IAuthorizationPort, RoleType } from '../../organization/ports/auth.port';
+import type { IClockPort } from '../../organization/ports/clock.port';
+import type { IUuidPort } from '../../organization/ports/uuid.port';
+import type { IAuditPort } from '../../organization/ports/audit.port';
 import type { IFormValidationPort } from '../domain/services/form-validator.service';
 
 import {
@@ -81,7 +81,7 @@ export interface FieldDefProps {
   readonly labelEn: string;
   readonly type: string;
   readonly required?: boolean;
-  readonly pattern?: string;
+  readonly pattern?: string | null;
   readonly min?: number | null;
   readonly max?: number | null;
   readonly defaultValue?: string | null;
@@ -495,32 +495,17 @@ export class FormService implements IFormValidationPort {
       throw new FormNotFoundError(definitionId);
     }
 
-    // Tenant isolation check
-    VisibilityPolicy.verifyFormOrg(result.data.orgId, requestOrgId);
+    // Tenant isolation check — le repository retourne déjà l'entité domaine
+    VisibilityPolicy.verifyFormOrg(result.definition.orgId, requestOrgId);
 
-    // Reconstruct domain entity from repo row
-    const definition = new FormDefinition({
-      id: definitionId,
-      orgId: result.data.orgId,
-      key: result.data.cleFormulaire,
-      modelRef: result.data.referenceModele,
-      version: new FormVersion(result.data.versionSemantique),
-      isPublished: result.data.estPublie,
-      publishedBy: result.data.publiePar,
-      publishedAt: result.data.datePremierePublication ? new Date(String(result.data.datePremierePublication)) : undefined,
-      createdAt: new Date(String(result.data.created_at)),
-      updatedAt: new Date(String(result.data.updated_at)),
-      sections: [],
-    });
-
-    return { definition, orgId: result.data.orgId };
+    return { definition: result.definition, orgId: result.definition.orgId };
   }
 
   private _findFieldByName(
-    _result: FindFormDefinitionByIdResult,
+    _result: { definition: FormDefinition; orgId: string },
     _fieldName: string,
   ): FieldDef | null {
-    // In production, iterate through result.data.fields to find matching name
+    // In production, iterate through _result.definition.sections to find matching name
     return null;
   }
 }

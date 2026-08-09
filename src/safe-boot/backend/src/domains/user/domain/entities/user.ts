@@ -21,7 +21,7 @@ export class User {
   private _lastName: string;
   private readonly _email: EmailAddress;
   private _phone?: PhoneNumber | null;
-  private readonly _role: UserRole;
+  private _role: UserRole;
   private readonly _status: 'active' | 'inactive';
   private _version: number;
   private _createdAt: Date;
@@ -63,7 +63,7 @@ export class User {
   get firstName(): string { return this._firstName; }
   get lastName(): string { return this._lastName; }
   get email(): EmailAddress { return this._email; }
-  get phone(): PhoneNumber | undefined { return this._phone; }
+  get phone(): PhoneNumber | undefined { return this._phone ?? undefined; }
   get role(): UserRole { return this._role; }
   get status(): 'active' | 'inactive' { return this._status; }
   get version(): number { return this._version; }

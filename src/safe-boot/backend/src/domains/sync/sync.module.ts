@@ -9,11 +9,16 @@ import { Module, Global } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 
 // Ports (interfaces defined in domain)
-import {
+import type {
   IPendingOperationsPort,
   ISyncStatusRepositoryPort,
 } from '@domains/sync/ports';
-import { IRemoteApiPort } from '@domains/sync/ports/remote-api-port.interface';
+import type { IRemoteApiPort } from '@domains/sync/ports/remote-api-port.interface';
+
+// DI tokens for port interfaces (interfaces ne peuvent pas être des tokens valeur)
+const IPENDING_OPERATIONS_PORT = 'IPendingOperationsPort';
+const ISYNC_STATUS_REPOSITORY_PORT = 'ISyncStatusRepositoryPort';
+const IREMOTE_API_PORT = 'IRemoteApiPort';
 
 // Application Service
 import { OfflineSyncService } from './application-service/offline-sync.service';
@@ -48,15 +53,15 @@ import { SyncScheduler } from './sync.scheduler';
 
     // Infrastructure adapters
     {
-      provide: IPendingOperationsPort,
+      provide: IPENDING_OPERATIONS_PORT,
       useClass: PrismaPendingOperationsRepository,
     },
     {
-      provide: ISyncStatusRepositoryPort,
+      provide: ISYNC_STATUS_REPOSITORY_PORT,
       useClass: PrismaSyncStatusRepository,
     },
     {
-      provide: IRemoteApiPort,
+      provide: IREMOTE_API_PORT,
       useClass: HttpRemoteApiClient,
     },
 
@@ -74,9 +79,9 @@ import { SyncScheduler } from './sync.scheduler';
   ],
   exports: [
     OfflineSyncService,
-    IPendingOperationsPort,
-    ISyncStatusRepositoryPort,
-    IRemoteApiPort,
+    IPENDING_OPERATIONS_PORT,
+    ISYNC_STATUS_REPOSITORY_PORT,
+    IREMOTE_API_PORT,
     SyncScheduler,
   ],
 })

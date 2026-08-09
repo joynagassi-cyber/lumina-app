@@ -8,9 +8,9 @@
  *   → ITS-V1: Access token short-lived + Refresh long-lived rotation
  */
 
-import { AuthToken } from '../domain/value-objects/auth-token.vo';
-import { RefreshToken } from '../domain/value-objects/refresh-token.vo';
-import type { JwtPolicy } from '../domain/policies/jwt-policy';
+import { AuthToken } from '../value-objects/auth-token.vo';
+import { RefreshToken } from '../value-objects/refresh-token.vo';
+import type { JwtPolicy } from '../policies/jwt-policy';
 
 export interface TokenPayload {
   userId: string;
@@ -49,7 +49,7 @@ export class TokenValidator {
     if (token.isExpired()) {
       throw new Error('Refresh token has expired');
     }
-    this._policy.validateRefreshTtl(token.ttlMs());
+    this._policy.validateRefreshTtl(token.expiresAt.getTime() - Date.now());
   }
 
   /**

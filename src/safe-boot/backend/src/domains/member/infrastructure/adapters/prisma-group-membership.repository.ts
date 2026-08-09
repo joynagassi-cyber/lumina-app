@@ -5,17 +5,18 @@
  */
 
 import type { IGroupMembershipRepository } from '../../ports/group-membership.port';
-import type { GroupMembership } from '../../domain/entities/group-membership.entity';
+import type { MembershipRole } from '../../domain/value-objects/membership-role.vo';
+import type { GroupMembership, GroupMembershipData } from '../../domain/entities/group-membership.entity';
 import { GroupMembership as GroupMembershipEntity } from '../../domain/entities/group-membership.entity';
 import { JoinTimestamp } from '../../domain/value-objects/join-timestamp.vo';
 
 export interface PrismaClientLike {
   groupMembership: {
-    findUnique(args: { where: { id: string } }): Promise<unknown | null>;
-    findMany(args: { where: { member_uuid?: string; org_id?: string; group_org_unit_uuid?: string } }): Promise<unknown[]>;
+    findUnique(args: { where: Record<string, unknown> }): Promise<unknown | null>;
+    findMany(args: { where: Record<string, unknown> }): Promise<unknown[]>;
     create(args: { data: Record<string, unknown> }): Promise<unknown>;
-    update(args: { where: { id: string }; data: Record<string, unknown> }): Promise<unknown>;
-    delete(args: { where: { id: string } }): Promise<void>;
+    update(args: { where: Record<string, unknown>; data: Record<string, unknown> }): Promise<unknown>;
+    delete(args: { where: Record<string, unknown> }): Promise<void>;
   };
 }
 
@@ -64,7 +65,7 @@ export class PrismaGroupMembershipRepository implements IGroupMembershipReposito
     return record !== null && record !== undefined;
   }
 
-  async create(data: Omit<typeof import('../../domain/entities/group-membership.entity').GroupMembershipData, 'id'>): Promise<GroupMembership> {
+  async create(data: Omit<GroupMembershipData, 'id'>): Promise<GroupMembership> {
     const row = await this.prisma.groupMembership.create({
       data: {
         org_id: data.orgId,
@@ -82,7 +83,7 @@ export class PrismaGroupMembershipRepository implements IGroupMembershipReposito
 
   async update(
     id: string,
-    partial: Partial<Omit<typeof import('../../domain/entities/group-membership.entity').GroupMembershipData, 'id'>>,
+    partial: Partial<Omit<GroupMembershipData, 'id'>>,
   ): Promise<GroupMembership> {
     const updateData: Record<string, unknown> = {};
     if ('joinTimestamp' in partial) {
@@ -125,8 +126,8 @@ export class PrismaGroupMembershipRepository implements IGroupMembershipReposito
       orgId: String(rec.org_id ?? rec.orgId),
       memberUuid: String(rec.member_uuid ?? rec.memberUuid),
       groupOrgUnitUuid: String(rec.group_org_unit_uuid ?? rec.groupOrgUnitUuid),
-      joinTimestamp: rec.join_timestamp ? JoinTimestamp.from(new Date(rec.join_timestamp)) : JoinTimestamp.now(),
-      membershipRole: rec.membership_role ?? rec.membershipRole ?? null,
+      joinTimestamp: rec.join_timestamp ? JoinTimestamp.from(new Date(String(rec.join_timestamp))) : JoinTimestamp.now(),
+      membershipRole: (rec.membership_role ?? rec.membershipRole ?? null) as MembershipRole | null,
       departureDate: rec.departure_date ?? rec.departureDate ? new Date(String(rec.departure_date ?? rec.departureDate)) : null,
       createdAt: new Date(String(rec.created_at ?? rec.createdAt)),
       updatedAt: new Date(String(rec.updated_at ?? rec.updatedAt)),

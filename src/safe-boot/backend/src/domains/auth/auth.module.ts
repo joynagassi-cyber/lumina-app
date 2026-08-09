@@ -18,9 +18,9 @@
 
 import { Module, DynamicModule } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthService } from '../application/auth.service';
-import { MfaService } from '../domain/services/mfa-service';
-import { DEFAULT_JWT_POLICY, type JwtPolicy, JwtPolicy as JwtPolicyClass } from '../domain/policies/jwt-policy';
+import { AuthService } from './application/auth.service';
+import { MfaService } from './domain/services/mfa-service';
+import { DEFAULT_JWT_POLICY, type JwtPolicy, JwtPolicy as JwtPolicyClass } from './domain/policies/jwt-policy';
 import type { ISessionRepository, ICredentialRepository, IJwtServicePort } from '@domains/user/ports';
 
 export class AuthModule {
@@ -28,7 +28,7 @@ export class AuthModule {
     const policy = jwtPolicy ?? DEFAULT_JWT_POLICY;
 
     return {
-      module: AuthModule as unknown as DynamicModule,
+      module: AuthModule,
       imports: [
         JwtModule.register({
           global: true,

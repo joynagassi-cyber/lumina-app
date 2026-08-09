@@ -12,22 +12,41 @@ import type {
   IPurgeSchedulePortRecord,
   ArchiveEntryState,
   PurgeEligibleState,
-} from '../ports/lifecycle.port';
+  ResourceOriginalType,
+} from '../../ports/lifecycle.port';
 
 export class PrismaLifecycleRepository implements IArchiveEntryPort, IPurgeSchedulePort {
   constructor(private readonly prisma: unknown) {}
 
   // ---- IArchiveEntryPort ----
 
-  async create(record: Omit<ArchiveEntryPortRecord, 'id' | 'version' | 'archived_at'>): Promise<string> {
+  async create(record: Omit<ArchiveEntryPortRecord, 'id' | 'version' | 'archived_at'>): Promise<string>;
+  async create(record: Omit<IPurgeSchedulePortRecord, 'id' | 'executee'>): Promise<string>;
+  async create(
+    record:
+      | Omit<ArchiveEntryPortRecord, 'id' | 'version' | 'archived_at'>
+      | Omit<IPurgeSchedulePortRecord, 'id' | 'executee'>,
+  ): Promise<string> {
+    if ('entry_id' in record) {
+      const data = { ...record };
+      await this.prismaExecute('create', 'purge_schedules', data);
+      return String((data as { id?: string }).id ?? '');
+    }
     const query = this.prismaQuery('create', record);
     return String(query.result?.id ?? '');
   }
 
-  async findById(id: string, requestOrgId: string): Promise<ArchiveEntryPortRecord | null> {
+  async findById(id: string, requestOrgId: string): Promise<ArchiveEntryPortRecord | null>;
+  async findById(id: string, requestOrgId: string): Promise<IPurgeSchedulePortRecord | null>;
+  async findById(
+    id: string,
+    requestOrgId: string,
+  ): Promise<ArchiveEntryPortRecord | IPurgeSchedulePortRecord | null> {
     const raw = await this.prismaFindOne('archives', { id, org_id: requestOrgId });
-    if (!raw) return null;
-    return this.toPortRecord(raw);
+    if (raw) return this.toPortRecord(raw);
+    const schedule = await this.prismaFindOne('purge_schedules', { id, org_id: requestOrgId });
+    if (schedule) return this.toPurgeSchedulePortRecord(schedule);
+    return null;
   }
 
   async findByResourceId(
@@ -95,18 +114,6 @@ export class PrismaLifecycleRepository implements IArchiveEntryPort, IPurgeSched
 
   // ---- IPurgeSchedulePort ----
 
-  async create(record: Omit<IPurgeSchedulePortRecord, 'id' | 'executee'>): Promise<string> {
-    const data = { ...record };
-    await this.prismaExecute('create', 'purge_schedules', data);
-    return String(data.id ?? '');
-  }
-
-  async findById(id: string, requestOrgId: string): Promise<IPurgeSchedulePortRecord | null> {
-    const raw = await this.prismaFindOne('purge_schedules', { id, org_id: requestOrgId });
-    if (!raw) return null;
-    return this.toPurgeSchedulePortRecord(raw);
-  }
-
   async findPendingByDate(maxDate: Date, requestOrgId: string): Promise<IPurgeSchedulePortRecord[]> {
     const raw = await this.prismaFindMany('purge_schedules', {
       executee: false,
@@ -135,7 +142,7 @@ export class PrismaLifecycleRepository implements IArchiveEntryPort, IPurgeSched
       id: String(row.id),
       org_id: String(row.org_id),
       archive_by: row.archive_by ? String(row.archive_by) : null,
-      resource_type_original: String(row.resource_type_original),
+      resource_type_original: String(row.resource_type_original) as ResourceOriginalType,
       resource_id_original: String(row.resource_id_original),
       member_lie_id: row.member_lie_id ? String(row.member_lie_id) : null,
       metadata: this.parseJson(row.metadonnees_archive, {}),
@@ -156,7 +163,7 @@ export class PrismaLifecycleRepository implements IArchiveEntryPort, IPurgeSched
       id: String(row.id),
       org_id: String(row.org_id),
       entry_id: String(row.entry_id),
-      etats_eligibles: [String(row.etats_eligibles)] as PurgeEligibleState[],
+      etats_eligibles: String(row.etats_eligibles) as PurgeEligibleState,
       programme_par_systeme: Boolean(row.programme_par_systeme),
       date_planifiee: new Date(String(row.date_planifiee)),
       executee: Boolean(row.executee),

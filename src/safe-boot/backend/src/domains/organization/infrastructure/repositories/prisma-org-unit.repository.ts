@@ -8,9 +8,9 @@
  * @traceability DOC-012 Aggregate1 → POSTGRESQL-SCHEMA-PACK-v1 org_units
  */
 
-import { OrgUnit } from '../../../domain/org-unit.entity';
-import { assertValidOrgUnitType, assertValidOrgUnitStatus } from '../../../domain/org-unit.entity';
-import { OrgUnitHierarchy } from '../../../domain/value-objects/org-unit-hierarchy.vo';
+import { OrgUnit } from '../../domain/org-unit.entity';
+import { assertValidOrgUnitType, assertValidOrgUnitStatus } from '../../domain/org-unit.entity';
+import { OrgUnitHierarchy } from '../../domain/value-objects/org-unit-hierarchy.vo';
 import type { IOrgUnitRepository } from '../../ports/repository.port';
 
 export class PrismaOrgUnitRepository implements IOrgUnitRepository {

@@ -19,9 +19,9 @@ export {
 export { OrgUnitHierarchy, InvalidOrgUnitHierarchyError } from './domain/value-objects/org-unit-hierarchy.vo';
 export {
   OrganizationSettings,
-  OrganizationSettingEntry,
   InvalidOrganizationSettingsError,
 } from './domain/value-objects/organization-settings.vo';
+export type { OrganizationSettingEntry } from './domain/value-objects/organization-settings.vo';
 
 // ---- Entities ----
 export { Organization } from './domain/organization.entity';

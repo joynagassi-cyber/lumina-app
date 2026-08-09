@@ -9,8 +9,8 @@
 
 import { EventRecord } from '../entities/event-record.entity';
 import type { EventRecordProps } from '../entities/event-record.entity';
-import { ResourceId } from '../../finance/value-objects/resource-id.vo';
-import { ResourceMetadata } from '../../finance/value-objects/resource-metadata.vo';
+import { ResourceId } from '../../../finance/value-objects/resource-id.vo';
+import { ResourceMetadata } from '../../../finance/value-objects/resource-metadata.vo';
 import { EventState } from '../value-objects/event-state.vo';
 import { EventValidator } from './event-validator.service';
 

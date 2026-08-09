@@ -5,12 +5,13 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaPersistenceAdapter } from '@infrastructure/persistence/prisma';
 import {
   IPendingOperationsPort,
   PendingOperationRecord,
 } from '@domains/sync/ports/pending-operations-port.interface';
-import { SyncStatus } from '../value-objects/sync-status.vo';
+import { SyncStatus } from '@domains/sync/value-objects/sync-status.vo';
 
 @Injectable()
 export class PrismaPendingOperationsRepository implements IPendingOperationsPort {
@@ -23,7 +24,7 @@ export class PrismaPendingOperationsRepository implements IPendingOperationsPort
         resource_type: record.resource_type,
         resource_id: record.resource_id,
         action: record.action,
-        payload: record.payload,
+        payload: record.payload as unknown as Prisma.InputJsonValue,
         statut_sync: record.statut_sync,
         tentative_num: record.tentative_num,
         prochaine_retry: record.prochaine_retry ?? undefined,
@@ -121,7 +122,10 @@ export class PrismaPendingOperationsRepository implements IPendingOperationsPort
       resource_type: op.resource_type,
       resource_id: op.resource_id,
       action: op.action,
-      payload: typeof op.payload === 'string' ? JSON.parse(op.payload) : (op.payload as Record<string, unknown>),
+      payload:
+        typeof op.payload === 'string'
+          ? (JSON.parse(op.payload) as Record<string, unknown>)
+          : (op.payload as unknown as Record<string, unknown>),
       statut_sync: op.statut_sync as SyncStatus,
       tentative_num: op.tentative_num,
       created_at: op.created_at,

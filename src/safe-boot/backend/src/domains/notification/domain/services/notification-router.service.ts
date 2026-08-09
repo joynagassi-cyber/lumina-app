@@ -12,7 +12,7 @@
  * @traceability DOC-012 Aggregate7 DomainService NotificationRouter → PG-Schema-v1 Table 19
  */
 
-import { INotificationChannelPort } from '../../ports/channel.port';
+import type { ChannelPort } from '../../ports/channel.port';
 import { ChannelType } from '../value-objects/channel-type.vo';
 import { SeverityLevel } from '../value-objects/severity-level.vo';
 import type { NotificationMessage } from '../entities/notification-message.entity';
@@ -42,12 +42,12 @@ export interface INotificationRouter {
 }
 
 export class NotificationRouter implements INotificationRouter {
-  private readonly channels: ReadonlyMap<ChannelType, INotificationChannelPort>;
+  private readonly channels: ReadonlyMap<ChannelType, ChannelPort>;
   private readonly quietHoursPolicy: QuietHoursPolicy;
   private readonly channelPreferencePolicy: ChannelPreferencePolicy;
 
   constructor(
-    channels: ReadonlyMap<ChannelType, INotificationChannelPort>,
+    channels: ReadonlyMap<ChannelType, ChannelPort>,
     quietHoursPolicy: QuietHoursPolicy,
     channelPreferencePolicy: ChannelPreferencePolicy,
   ) {
@@ -57,8 +57,8 @@ export class NotificationRouter implements INotificationRouter {
   }
 
   resolveChannels(preference: NotificationPreference): ChannelType[] {
-    return this.channelPreferencePolicy.resolveAllowedChannels(
-      preference,
+    return preference.channels.filter((c) =>
+      this.channelPreferencePolicy.isChannelAllowed(c, preference),
     );
   }
 

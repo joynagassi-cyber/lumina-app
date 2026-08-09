@@ -41,7 +41,7 @@ export interface FieldDefProps {
   readonly labelEn: string;
   readonly type: FieldType;
   readonly required?: boolean;
-  readonly pattern?: string;
+  readonly pattern?: string | null;
   readonly min?: number | null;
   readonly max?: number | null;
   readonly defaultValue?: string | null;

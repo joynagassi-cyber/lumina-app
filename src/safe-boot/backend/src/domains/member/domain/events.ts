@@ -4,7 +4,7 @@
  * @traceability DOC-012 §Aggregate 4 (Domain Events produits)
  */
 
-import { DomainEvent } from '../../../../shared/events';
+import { DomainEvent } from '../../../shared/events';
 
 export class MemberJoinedGroup extends DomainEvent {
   constructor(
