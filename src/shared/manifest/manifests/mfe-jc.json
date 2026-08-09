@@ -87,7 +87,7 @@
         { "id": "draft", "type": "task", "transitions": ["pending"] },
         { "id": "pending", "type": "approval", "transitions": ["approved", "rejected"] },
         { "id": "approved", "type": "end", "transitions": [] },
-        { "id": "rejected", "type": "end", "transitions": ["draft"] }
+        { "id": "rejected", "type": "task", "transitions": ["draft"] }
       ]
     }
   ]
