@@ -45,7 +45,8 @@ export class HierarchyPolicy {
       if (edge.parentId === edge.childId) {
         throw new OrgUnitAlreadyOwnChildError(edge.childId);
       }
-      if (OrgUnitHierarchyResolver.isDescendantOrSelf(edge.parentId!, edge.childId, lookupFn)) {
+      // Moving a unit to the root (parentId null) is always cycle-free.
+      if (edge.parentId !== null && OrgUnitHierarchyResolver.isDescendantOrSelf(edge.parentId, edge.childId, lookupFn)) {
         throw new OrgUnitAlreadyOwnChildError(edge.childId);
       }
     }

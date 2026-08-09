@@ -41,7 +41,7 @@ export class EventValidator {
 
   /** Validate created_by is set. */
   static assertCreatedBySet(createdBy: string): void {
-    if (!createdBy || createdBy.length === 0) {
+    if (!createdBy || createdBy.trim().length === 0) {
       throw new EventValidationError('MISSING_CREATED_BY', 'created_by is mandatory for all events');
     }
   }

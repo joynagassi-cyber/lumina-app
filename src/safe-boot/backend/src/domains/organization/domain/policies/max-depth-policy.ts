@@ -37,6 +37,7 @@ export class MaxDepthPolicy {
    * Returns true if the depth would be within bounds.
    */
   static isChildDepthValid(parentDepth: number): boolean {
+    if (parentDepth < 0) return false;
     return parentDepth + 1 <= OrgUnit.MAX_DEPTH;
   }
 }

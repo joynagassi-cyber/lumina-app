@@ -11,7 +11,7 @@
  */
 
 import type { UserRole } from '../value-objects/user-role';
-import { ROLE_HIERARCHY, type RoleName } from '../value-objects/user-role';
+import { ROLE_HIERARCHY, ADMIN_CREATEABLE_ROLES, type RoleName } from '../value-objects/user-role';
 import { PermissionGrant } from '../value-objects/permission-grant';
 
 /** Built-in role manifest — maps each role to its default permission grants. */
@@ -22,29 +22,29 @@ interface RoleManifest {
 const ROLE_MANIFEST: RoleManifest = {
   superadmin: ['*:*:*'],
   admin: [
-    'user:create', 'user:read', 'user:update', 'user:delete',
-    'org:read', 'org:update',
-    'finance:read', 'finance:write',
-    'workflow:approve', 'workflow:reject',
-    'reporting:generate', 'reporting:export',
-    'vocab:manage',
-    'settings:manage',
+    'user:create:*', 'user:read:*', 'user:update:*', 'user:delete:*',
+    'org:read:*', 'org:update:*',
+    'finance:read:*', 'finance:write:*',
+    'workflow:approve:*', 'workflow:reject:*',
+    'reporting:generate:*', 'reporting:export:*',
+    'vocab:manage:*',
+    'settings:manage:*',
   ],
   treasurer: [
-    'finance:read', 'finance:write',
-    'reporting:generate', 'reporting:export',
+    'finance:read:*', 'finance:write:*',
+    'reporting:generate:*', 'reporting:export:*',
   ],
   pastor: [
-    'user:read', 'user:update',
-    'finance:read',
-    'reporting:generate',
-    'event:manage',
-    'membership:manage',
+    'user:read:*', 'user:update:*',
+    'finance:read:*',
+    'reporting:generate:*',
+    'event:manage:*',
+    'membership:manage:*',
   ],
   staff: [
-    'finance:read',
-    'reporting:generate',
-    'event:read',
+    'finance:read:*',
+    'reporting:generate:*',
+    'event:read:*',
   ],
 };
 
@@ -72,8 +72,9 @@ export class PermissionResolver {
   canCreateRole(actorRole: UserRole, targetRole: RoleName): boolean {
     // SuperAdmin can create anyone
     if (actorRole.isSuperadmin()) return true;
-    // Admin can only create treasurer, pastor, staff
-    return ROLE_MANIFEST.admin?.some((p) => p.includes(targetRole)) ?? false;
+    // BR-ID-005: only Admin (not lower roles) can create treasurer, pastor, staff
+    if (!actorRole.isAdmin()) return false;
+    return ADMIN_CREATEABLE_ROLES.has(targetRole);
   }
 
   /** Check if actor role has higher or equal privilege than subject role. */

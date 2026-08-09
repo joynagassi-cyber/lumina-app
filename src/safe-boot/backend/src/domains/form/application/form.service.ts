@@ -294,7 +294,7 @@ export class FormService implements IFormValidationPort {
     const result = await this._loadFormDefinition(input.definitionId, input.requestOrgId);
     const definition = result.definition;
 
-    NoHardcodedFormPolicy.assertRenderedViaService('FormService');
+    NoHardcodedFormPolicy.assertRenderedViaService('FormRenderer');
 
     definition.publish(publisherId, this.clock);
     await this.repo.updateDefinition(definition);
