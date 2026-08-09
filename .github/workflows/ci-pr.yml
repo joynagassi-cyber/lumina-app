@@ -69,6 +69,10 @@ jobs:
 
       - name: Run unit tests (jest - suite tests/unit racine)
         run: |
+          # Libs frontend hoistées localement (react pour src/shared, jsondiffpatch
+          # pour tests/unit/shared) absentes du manifest backend : install éphémère
+          # --no-save (ne touche ni package.json ni le lock commité).
+          npm install --no-save --no-workspaces react@18.3.1 jsondiffpatch@0.6.2
           # La config jest racine (preset ts-jest) et les imports des specs
           # résolvent les paquets depuis la racine. Sur CI, tout vit dans le
           # node_modules du backend : on reproduit le hoisting local (racine
