@@ -19,6 +19,10 @@ async function bootstrap() {
   // Global prefix for API versioning
   app.setGlobalPrefix('api/v1');
 
+  // CRT-011 (ADR-018) : shutdown propre — onModuleDestroy / beforeApplicationShutdown
+  // exécutés sur SIGTERM/SIGINT (flush des opérations pendantes, disconnect Prisma).
+  app.enableShutdownHooks();
+
   // Enable CORS with strict origins
   app.enableCors({
     origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:8081'],
