@@ -57,7 +57,7 @@ export class HierarchyPolicy {
       if (err instanceof CycleDetectedError) {
         throw new HierarchyValidationError('Cycle detected in proposed hierarchy.', err);
       }
-      throw;
+      throw err;
     }
 
     // REL-002 / BR-ORG-002: Depth check for each proposed node
@@ -71,7 +71,7 @@ export class HierarchyPolicy {
             err,
           );
         }
-        throw;
+        throw err;
       }
     }
   }

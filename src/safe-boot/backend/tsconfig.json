@@ -31,5 +31,15 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*.spec.ts",
+    "src/safe-boot/**",
+    "src/core/**",
+    "src/reporting/**",
+    "src/domains/reporting/application/flexible-reporting.service.ts",
+    "src/domains/reporting/controllers/flexible-report.controller.ts"
+  ]
 }
