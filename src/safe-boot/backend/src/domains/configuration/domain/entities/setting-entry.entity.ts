@@ -47,7 +47,9 @@ export class SettingEntry {
 
   private constructor(private readonly props: SettingEntryProps) {}
 
-  static create(params: Omit<SettingEntryProps, 'id' | 'updatedAt'>): SettingEntry {
+  static create(
+    params: Omit<SettingEntryProps, 'id' | 'updatedAt'> & { id?: string },
+  ): SettingEntry {
     return new SettingEntry({
       ...params,
       id: params.id ?? uuidv4(),

@@ -10,8 +10,8 @@
  */
 
 import { FieldDef, assertValidFieldType } from '../value-objects/field-def.vo';
-import type { FormDefinition } from '../domain/entities/form-definition.entity';
-import type { FormField, FormValidationResult } from '../domain/entities/form-field.entity';
+import type { FormDefinition } from '../entities/form-definition.entity';
+import type { FormField, FormValidationResult } from '../entities/form-field.entity';
 import { FormValidationFailed } from '../events';
 
 export interface ValidationResult {

@@ -50,7 +50,6 @@ export class InAppChannelAdapter implements ChannelPort {
       // Should never happen for in_app per BR-NOT-003.
       return {
         success: false,
-        channelType: ChannelType.IN_APP,
         error: 'In-app delivery failed — unexpected local DB error',
       };
     }

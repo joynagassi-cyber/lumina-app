@@ -9,52 +9,52 @@ import { SyncAction } from '@domains/sync/value-objects/sync-action.vo';
 
 export class CreatePendingOperationDto {
   @IsString()
-  orgId: string;
+  orgId!: string;
 
   @IsString()
-  resourceType: string;
+  resourceType!: string;
 
   @IsUUID()
-  resourceId: string;
+  resourceId!: string;
 
   @IsEnum(SyncAction)
-  action: SyncAction;
+  action!: SyncAction;
 
   @IsObject()
-  payload: Record<string, unknown>;
+  payload!: Record<string, unknown>;
 }
 
 export class ConfirmOperationDto {
   @IsUUID()
-  operationId: string;
+  operationId!: string;
 }
 
 export class ResolveConflictDto {
   @IsString()
-  orgId: string;
+  orgId!: string;
 
   @IsString()
-  resourceType: string;
+  resourceType!: string;
 
   @IsUUID()
-  resourceId: string;
+  resourceId!: string;
 
   @IsObject()
-  localPayload: Record<string, unknown>;
+  localPayload!: Record<string, unknown>;
 
   @IsObject()
-  remotePayload: Record<string, unknown>;
+  remotePayload!: Record<string, unknown>;
 }
 
 export class PushRequestDto {
   @IsString()
-  orgId: string;
+  orgId!: string;
 }
 
 export class PullRequestDto {
   @IsString()
-  orgId: string;
+  orgId!: string;
 
   @IsString()
-  tableRef: string;
+  tableRef!: string;
 }

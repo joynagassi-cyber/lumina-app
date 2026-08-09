@@ -19,6 +19,7 @@ export class SessionContext {
     refreshTokenHash: string;
     expiresAt: Date;
     deviceInfo: Record<string, unknown>;
+    isActive?: boolean;
     createdAt?: Date;
     revokedAt?: Date | null;
   }) {

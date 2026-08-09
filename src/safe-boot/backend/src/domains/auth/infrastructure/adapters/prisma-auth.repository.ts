@@ -9,11 +9,11 @@
  *   → PAS-v1 Port & Adapter pattern → Prisma 5+ adapter
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import type {
   ISessionRepository,
 } from '@domains/user/ports';
-import type { AuthSession } from '../domain/entities/auth-session.entity';
+import type { AuthSession } from '../../domain/entities/auth-session.entity';
 
 interface SessionRow {
   id: string;
@@ -47,7 +47,13 @@ export class PrismaAuthSessionRepository implements ISessionRepository {
     return `session-${Date.now()}`;
   }
 
-  async findById(sessionId: string): Promise<AuthSession | null> {
+  async findById(sessionId: string): Promise<{
+    isActive: boolean;
+    userId: string;
+    expiresAt: Date;
+    deviceInfo: Record<string, unknown>;
+    orgId: string;
+  } | null> {
     // SELECT * FROM sessions WHERE id = $1
     return null;
   }
@@ -80,9 +86,16 @@ export class PrismaAuthSessionRepository implements ISessionRepository {
     return true;
   }
 
-  async revokeByUser(userId: string, revokedBy: string): Promise<number> {
+  async revokeByUser(userId: string): Promise<number> {
     // UPDATE sessions SET est_active = FALSE, date_revocation = NOW()
     // WHERE user_id = $1 AND est_active = TRUE
+    return 0;
+  }
+
+  async expireOldSessions(maxAgeMs: number): Promise<number> {
+    // UPDATE sessions SET est_active = FALSE, date_revocation = NOW()
+    // WHERE est_active = TRUE AND date_expiration < NOW() - $1
+    void maxAgeMs;
     return 0;
   }
 }

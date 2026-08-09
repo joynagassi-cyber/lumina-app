@@ -9,7 +9,7 @@ export class OperationPayload {
   private static readonly MIN_LENGTH = 2; // '{}' is minimum valid JSON
 
   constructor(public readonly value: string) {
-    if (!this.constructor.isValid(value)) {
+    if (!OperationPayload.isValid(value)) {
       throw new Error(
         `OperationPayload: invalid JSON — "${value.substring(0, 50)}"`,
       );

@@ -8,7 +8,7 @@
  *   → DOC-014 Event Registry → FormSubmitted, FormValidationFailed, FormSubmittedForApproval
  */
 
-import type { DomainEvent } from '../../ports/event-pub.port';
+import type { DomainEvent } from '../ports/event-pub.port';
 
 export class FormSubmitted implements DomainEvent {
   readonly aggregateId: string;

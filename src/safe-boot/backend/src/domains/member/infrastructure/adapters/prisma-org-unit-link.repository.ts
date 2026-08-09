@@ -10,11 +10,11 @@ import type { OrgUnitLinkData } from '../../domain/entities/org-unit-link.entity
 
 export interface PrismaClientLike {
   orgUnitLink: {
-    findUnique(args: { where: { id: string } }): Promise<unknown | null>;
+    findUnique(args: { where: Record<string, unknown> }): Promise<unknown | null>;
     findMany(args: { where: Record<string, unknown> }): Promise<unknown[]>;
     create(args: { data: Record<string, unknown> }): Promise<unknown>;
-    update(args: { where: { id?: string; child_org_unit_uuid?: string }; data: Record<string, unknown> }): Promise<unknown>;
-    delete(args: { where: { id: string } }): Promise<void>;
+    update(args: { where: Record<string, unknown>; data: Record<string, unknown> }): Promise<unknown>;
+    delete(args: { where: Record<string, unknown> }): Promise<void>;
   };
 }
 
@@ -26,7 +26,7 @@ export class PrismaOrgUnitLinkRepository implements IOrgUnitLinkRepository {
       where: { id },
     });
     if (!raw) return null;
-    return this._toDomain(raw);
+    return this._toDomain(raw as Record<string, unknown>);
   }
 
   async findParent(

@@ -13,7 +13,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import type { JwtService as NestJwtService } from '@nestjs/jwt';
 import type { IJwtServicePort } from '../../ports';
-import type { JWTToken } from '../../domain/value-objects';
+import { JWTToken } from '../../domain/value-objects';
 
 @Injectable()
 export class NestJwsAdapter implements IJwtServicePort {

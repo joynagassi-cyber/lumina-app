@@ -8,12 +8,12 @@ export type ConnectionState = 'online' | 'offline';
 
 export interface SyncStatusRecord {
   id: string;
-  org_id: string;
-  table_reference: string;
-  dernier_synchro_timestamp?: Date | null;
-  etat_connection: ConnectionState;
-  derniere_operation_push?: Date | null;
-  derniere_operation_pull?: Date | null;
+  orgId: string;
+  tableRef: string;
+  lastSyncTimestamp?: Date | null;
+  connectionState: ConnectionState;
+  lastPushTimestamp?: Date | null;
+  lastPullTimestamp?: Date | null;
 }
 
 export interface ISyncStatusRepositoryPort {

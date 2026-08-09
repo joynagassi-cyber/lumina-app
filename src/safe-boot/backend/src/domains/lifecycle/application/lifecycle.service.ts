@@ -26,6 +26,7 @@ import {
   ArchiveEntryPortRecord,
   ArchiveEntryState,
   PurgeEligibleState,
+  ResourceOriginalType,
 } from '../ports/lifecycle.port';
 import { SoftDeletePolicy } from '../domain/policies/soft-delete-policy';
 
@@ -75,13 +76,13 @@ export class LifecycleService {
     await this.archivePort.create({
       org_id: entry.orgId,
       archive_by: entry.archivedBy,
-      resource_type_original: entry.resourceTypeOriginal as Exclude<typeof entry.resourceTypeOriginal, ''>,
+      resource_type_original: entry.resourceTypeOriginal as ResourceOriginalType,
       resource_id_original: entry.resourceIdOriginal,
       member_lie_id: entry.linkedMemberId,
       metadata: entry.metadata,
       tags: entry.tags.tags,
       category: entry.category.value || null,
-      attachment_urls: entry.attachmentUrls.urls,
+      attachment_urls: [...entry.attachmentUrls.urls],
       etat_lifecycle: this.toPortState(LifecycleState.ACTIVE),
     });
 
@@ -195,19 +196,19 @@ export class LifecycleService {
     const entry = ArchiveEntry.create({
       id: record.id,
       orgId: record.org_id,
-      archivedBy: record.archive_by,
+      archivedBy: record.archive_by ?? null,
       resourceTypeOriginal: record.resource_type_original,
       resourceIdOriginal: record.resource_id_original,
-      linkedMemberId: record.member_lie_id,
+      linkedMemberId: record.member_lie_id ?? null,
       metadata: record.metadata,
       tags: new TagCollection(record.tags),
       category: CategoryRef.create(record.category ?? ''),
       attachmentUrls: new AttachmentUrlList(record.attachment_urls),
       state: record.etat_lifecycle as LifecycleState,
       archivedAt: record.archived_at,
-      trashedAt: record.trashed_at,
-      purgeDate: record.purge_date,
-      purgeReason: record.purge_reason,
+      trashedAt: record.trashed_at ?? null,
+      purgeDate: record.purge_date ?? null,
+      purgeReason: record.purge_reason ?? null,
     });
     // Replay events onto the entry
     for (const event of events) {

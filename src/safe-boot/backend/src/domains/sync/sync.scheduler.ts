@@ -9,9 +9,10 @@
  * @invariant SYNC-004: user ops never depend on sync synchronously
  */
 
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { OfflineSyncService, EventBus } from './application-service';
+import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
+import { OfflineSyncService } from './application-service';
+import type { EventBus } from './application-service';
 
 const DEFAULT_SYNC_ORG_IDS = ['placeholder-org'];
 
@@ -38,7 +39,7 @@ export class SyncScheduler implements OnModuleInit {
    * Push pending operations every 60 seconds.
    * Non-blocking: user operations are NOT waiting for this.
    */
-  @Cron(CronExpression.EVERY_60_SECONDS)
+  @Cron('*/60 * * * * *')
   async handlePushCron(): Promise<void> {
     if (this.initializedOrgs.length === 0) return;
 
@@ -56,7 +57,7 @@ export class SyncScheduler implements OnModuleInit {
    * Pull remote changes every 120 seconds.
    * Non-blocking: user operations are NOT waiting for this.
    */
-  @Cron(CronExpression.EVERY_2_MINUTES)
+  @Cron('*/120 * * * * *')
   async handlePullCron(): Promise<void> {
     if (this.initializedOrgs.length === 0) return;
 
@@ -75,7 +76,7 @@ export class SyncScheduler implements OnModuleInit {
   /**
    * Schedule failed operations for retry every 5 minutes.
    */
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron('*/300 * * * * *')
   async handleRetryCron(): Promise<void> {
     if (this.initializedOrgs.length === 0) return;
 

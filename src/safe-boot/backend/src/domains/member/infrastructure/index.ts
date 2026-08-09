@@ -3,5 +3,5 @@
  * @traceability DOC-012 §Aggregate 4
  */
 
-export { PrismaGroupMembershipRepository } from './prisma-group-membership.repository';
-export { PrismaOrgUnitLinkRepository } from './prisma-org-unit-link.repository';
+export { PrismaGroupMembershipRepository } from './adapters/prisma-group-membership.repository';
+export { PrismaOrgUnitLinkRepository } from './adapters/prisma-org-unit-link.repository';

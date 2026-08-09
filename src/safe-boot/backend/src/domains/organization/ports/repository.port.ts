@@ -9,8 +9,8 @@
  *   → PAS-005 PA-NB-007 (RepositoryAbstraction — persistence metadata stripped at boundary)
  */
 
-import { Organization } from '../../domain/organization.entity';
-import { OrgUnit, OrgUnitProps } from '../../domain/org-unit.entity';
+import { Organization } from '../domain/organization.entity';
+import { OrgUnit, OrgUnitProps } from '../domain/org-unit.entity';
 
 export interface FindOrganizationByIdResult {
   organization: Organization;

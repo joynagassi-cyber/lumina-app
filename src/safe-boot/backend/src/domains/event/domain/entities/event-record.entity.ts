@@ -6,10 +6,10 @@
  * @traceability DOC-012 Aggregate3 Entity EventRecord, PG-Schema-v1 Table 9
  */
 
-import { ResourceId } from '../../finance/value-objects/resource-id.vo';
-import { ResourceVersion } from '../../finance/value-objects/resource-version.vo';
+import { ResourceId } from '../../../finance/value-objects/resource-id.vo';
+import { ResourceVersion } from '../../../finance/value-objects/resource-version.vo';
 import { EventState, canTransitionFrom } from '../value-objects/event-state.vo';
-import { ResourceMetadata, type MetadataValue } from '../../finance/value-objects/resource-metadata.vo';
+import { ResourceMetadata, type MetadataValue } from '../../../finance/value-objects/resource-metadata.vo';
 
 export interface EventRecordProps {
   id: ResourceId;

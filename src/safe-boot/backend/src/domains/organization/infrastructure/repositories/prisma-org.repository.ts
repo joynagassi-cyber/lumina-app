@@ -10,10 +10,10 @@
  *   → PAS-003 DR-007 (Persistence Ignorance)
  */
 
-import { Organization } from '../../../domain/organization.entity';
-import { OrganizationName } from '../../../domain/value-objects/organization-name.vo';
-import { assertValidOrganizationType } from '../../../domain/value-objects/organization-type.vo';
-import { assertValidOrganizationStatus } from '../../../domain/value-objects/organization-status.vo';
+import { Organization } from '../../domain/organization.entity';
+import { OrganizationName } from '../../domain/value-objects/organization-name.vo';
+import { assertValidOrganizationType } from '../../domain/value-objects/organization-type.vo';
+import { assertValidOrganizationStatus } from '../../domain/value-objects/organization-status.vo';
 import type { IOrganizationRepository, FindOrganizationByIdResult } from '../../ports/repository.port';
 
 export class PrismaOrganizationRepository implements IOrganizationRepository {

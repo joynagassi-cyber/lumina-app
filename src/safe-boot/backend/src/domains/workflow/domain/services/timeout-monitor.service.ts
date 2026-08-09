@@ -9,8 +9,8 @@
  *   → BR-WF-001 (Timeout max 30 jours)
  */
 
-import { WorkflowStep, WorkflowStepStatus } from '../domain/entities/workflow-step.entity';
-import type { WorkflowInstance } from '../domain/entities/workflow-instance.entity';
+import { WorkflowStep, WorkflowStepStatus } from '../entities/workflow-step.entity';
+import type { WorkflowInstance } from '../entities/workflow-instance.entity';
 
 export interface StaleStepReport {
   /** The step that has timed out or is about to. */

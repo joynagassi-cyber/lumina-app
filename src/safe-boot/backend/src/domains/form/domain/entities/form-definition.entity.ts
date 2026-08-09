@@ -18,11 +18,11 @@ export interface FormDefinitionProps {
   readonly key: string;                   // cle_formulaire unique within org
   readonly modelRef: string;              // reference_modeble — domain entity type
   readonly version: FormVersion;
-  readonly isPublished: boolean;          // est_publie
-  readonly publishedBy?: string;          // uuid FK users
-  readonly publishedAt?: Date;            // date_premiere_publication / date_derniere_publication
+  isPublished: boolean;                   // est_publie
+  publishedBy?: string;                   // uuid FK users
+  publishedAt?: Date;                     // date_premiere_publication / date_derniere_publication
   readonly createdAt: Date;
-  readonly updatedAt: Date;
+  updatedAt: Date;
   sections: SectionDef[];                 // mutable until published
 }
 

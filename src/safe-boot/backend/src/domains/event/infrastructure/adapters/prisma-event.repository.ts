@@ -10,17 +10,17 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import type { PrismaClient } from '@prisma/client';
+import { Prisma, type PrismaClient } from '@prisma/client';
 import {
   type IEventRepository,
   type EventQueryFilters,
-} from '../ports/event-port.interface';
-import { EventRecord } from '../domain/entities/event-record.entity';
-import { ResourceId } from '../../finance/value-objects/resource-id.vo';
-import { ResourceVersion } from '../../finance/value-objects/resource-version.vo';
-import { EventState } from '../domain/value-objects/event-state.vo';
-import { ResourceMetadata } from '../../finance/value-objects/resource-metadata.vo';
-import type { PaginatedResult } from '../../../shared/types';
+} from '../../ports/event-port.interface';
+import { EventRecord } from '../../domain/entities/event-record.entity';
+import { ResourceId } from '../../../finance/value-objects/resource-id.vo';
+import { ResourceVersion } from '../../../finance/value-objects/resource-version.vo';
+import { EventState } from '../../domain/value-objects/event-state.vo';
+import { ResourceMetadata, type MetadataValue } from '../../../finance/value-objects/resource-metadata.vo';
+import type { PaginatedResult } from '../../../../shared/types';
 
 @Injectable()
 export class PrismaEventRepository implements IEventRepository {
@@ -78,7 +78,7 @@ export class PrismaEventRepository implements IEventRepository {
   async create(record: EventRecord): Promise<EventRecord> {
     const now = new Date();
     const created = await this.prisma.event.create({
-      data: this._toCreateInput(record, now),
+      data: this._toCreateInput(record, now) as unknown as Prisma.EventCreateInput,
     });
     return this._toEntity(created);
   }
@@ -145,7 +145,7 @@ export class PrismaEventRepository implements IEventRepository {
       description: row.description as string | null,
       state: row.statut as EventState,
       metadata: new ResourceMetadata(
-        (row.metadata as Record<string, unknown>) ?? {},
+        (row.metadata as Record<string, MetadataValue> | undefined) ?? {},
       ),
     });
   }

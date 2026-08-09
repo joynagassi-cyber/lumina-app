@@ -11,10 +11,10 @@
 import { INotificationRepository } from '../ports/notification-repository.port';
 import { ChannelType } from '../domain/value-objects/channel-type.vo';
 import { SeverityLevel } from '../domain/value-objects/severity-level.vo';
-import type { NotificationMessage } from '../domain/entities/notification-message.entity';
-import type { NotificationPreference } from '../domain/entities/notification-preference.entity';
+import { NotificationMessage } from '../domain/entities/notification-message.entity';
+import { NotificationPreference } from '../domain/entities/notification-preference.entity';
 import type { INotificationRouter } from '../domain/services/notification-router.service';
-import type { RateLimitConfig } from '../domain/value-objects/rate-limit-config.vo';
+import { RateLimitConfig } from '../domain/value-objects/rate-limit-config.vo';
 import type { INotificationRateLimiter } from '../domain/services/rate-limit-enforcer.service';
 import type { QuietHoursPolicy } from '../domain/policies/quiet-hours-policy';
 import type { NoUntriggeredNotificationPolicy } from '../domain/policies/untriggered-notification-policy';
@@ -137,7 +137,9 @@ export class NotificationService {
 
     // Check channel preference policy.
     const allowedChannels = this.router.resolveChannels(
-      preference ?? { channels: [ChannelType.IN_APP] } as NotificationPreference,
+      preference
+        ? NotificationPreference.fromPersistence(preference)
+        : NotificationPreference.create(cmd.recipientUserId, cmd.orgId),
     );
 
     if (!allowedChannels.includes(cmd.channel)) {
@@ -153,12 +155,16 @@ export class NotificationService {
       recipient_user_id: cmd.recipientUserId,
       subject_fr: cmd.subjectFr,
       subject_en: cmd.subjectEn,
-      corps_fr: cmd.bodyFr,
-      corps_en: cmd.bodyEn,
-      canal: cmd.channel,
-      severite: cmd.severity,
-      statut_notification: 'queued',
-      donnees_contextuelles: cmd.contextualData,
+      body_fr: cmd.bodyFr,
+      body_en: cmd.bodyEn,
+      channel: cmd.channel,
+      severity: cmd.severity,
+      status: 'queued',
+      contextual_data: cmd.contextualData ?? null,
+      triggered_by: cmd.triggeredBy,
+      sent_at: null,
+      read_at: null,
+      failed_at: null,
     });
 
     return notificationId;
@@ -174,10 +180,10 @@ export class NotificationService {
       throw new NotificationApplicationError('NOT_FOUND', `Notification ${notificationId} not found`);
     }
 
-    if (record.statut_notification !== 'queued') {
+    if (record.status !== 'queued') {
       throw new NotificationApplicationError(
         'INVALID_STATE',
-        `Cannot send notification in state '${record.statut_notification}'`,
+        `Cannot send notification in state '${record.status}'`,
       );
     }
 
@@ -231,7 +237,7 @@ export class NotificationService {
     if (!record) {
       throw new NotificationApplicationError('NOT_FOUND', 'Notification not found');
     }
-    if (record.statut_notification !== 'sent') {
+    if (record.status !== 'sent') {
       throw new NotificationApplicationError(
         'INVALID_STATE',
         'Can only mark sent notifications as read',

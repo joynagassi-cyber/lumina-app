@@ -5,7 +5,7 @@
  * @traceability DOC-012 §Aggregate 4, DOC-023 §3.4, BR-REL-001
  */
 
-import { OrgUnitLink } from '../domain/entities/org-unit-link.entity';
+import { OrgUnitLink } from '../entities/org-unit-link.entity';
 
 /**
  * Directed graph edge representation for cycle detection.

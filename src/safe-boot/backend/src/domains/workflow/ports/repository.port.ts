@@ -10,8 +10,8 @@
  *   → PAS-005 PA-NB-007 (RepositoryAbstraction — persistence metadata stripped at boundary)
  */
 
-import { WorkflowInstance } from '../../domain/entities/workflow-instance.entity';
-import { WorkflowStep } from '../../domain/entities/workflow-step.entity';
+import { WorkflowInstance } from '../domain/entities/workflow-instance.entity';
+import { WorkflowStep } from '../domain/entities/workflow-step.entity';
 
 // ---- Results ----
 

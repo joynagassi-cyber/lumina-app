@@ -8,7 +8,7 @@
  *   → BR-FRM-004 (Form versioning) combined with financial lock requirement
  */
 
-import type { RoleType } from '../../ports/auth.port';
+import type { RoleType } from '../../../organization/ports/auth.port';
 
 export class FormLockedError extends Error {
   constructor(formKey: string, reason: string) {

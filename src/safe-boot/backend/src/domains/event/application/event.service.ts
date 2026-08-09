@@ -13,9 +13,9 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { IEventRepository, type EventQueryFilters } from '../ports/event-port.interface';
-import { EventFactory, type CreateEventInput, type EventValidationError } from '../domain/services/event-factory.service';
-import { EventValidator } from '../domain/services/event-validator.service';
+import type { IEventRepository, EventQueryFilters } from '../ports/event-port.interface';
+import { EventFactory, type CreateEventInput } from '../domain/services/event-factory.service';
+import { EventValidator, EventValidationError } from '../domain/services/event-validator.service';
 import { EventState } from '../domain/value-objects/event-state.vo';
 import { ResourceId } from '../../finance/value-objects/resource-id.vo';
 import { VersioningPolicy } from '../../finance/domain-policies/versioning-policy';

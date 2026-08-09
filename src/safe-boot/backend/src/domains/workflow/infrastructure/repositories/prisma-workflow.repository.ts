@@ -40,7 +40,7 @@ export class PrismaWorkflowInstanceRepository implements IWorkflowInstanceReposi
       where: { id: instanceId, org_id: requestOrgId },
     });
     if (!raw) return null;
-    return this._toDomain(raw);
+    return this._toDomain(raw as Record<string, unknown>);
   }
 
   async findByResource(
@@ -137,7 +137,7 @@ export class PrismaWorkflowStepRepository implements IWorkflowStepRepository {
       where: { id: stepId, org_id: requestOrgId },
     });
     if (!raw) return null;
-    return this._toDomain(raw);
+    return this._toDomain(raw as Record<string, unknown>);
   }
 
   async findByInstanceId(
@@ -168,7 +168,7 @@ export class PrismaWorkflowStepRepository implements IWorkflowStepRepository {
 
   async update(entity: WorkflowStep): Promise<void> {
     await this._execute('update', {
-      where: { id: entity.id, org_id: entity.orgId },
+      where: { id: entity.id, instance_id: entity.instanceId },
       data: this._toPersistence(entity),
     });
   }

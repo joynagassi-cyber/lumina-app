@@ -11,7 +11,7 @@
 
 import type { INotificationRepository } from '../../ports/notification-repository.port';
 import type { NotificationPreference } from '../entities/notification-preference.entity';
-import type { RateLimitConfig } from '../value-objects/rate-limit-config.vo';
+import { RateLimitConfig } from '../value-objects/rate-limit-config.vo';
 
 export class RateLimitExceededError extends Error {
   constructor(
@@ -38,6 +38,16 @@ export interface INotificationRateLimiter {
 
   /** Reset the counter for an entity (e.g. after manual override). */
   reset(entityId: string): Promise<void>;
+
+  /**
+   * Enforce rate limit for a user+org based on preference. Returns false if limited.
+   * Called by the application service before delivery.
+   */
+  enforce(
+    userId: string,
+    orgId: string,
+    preference: NotificationPreference | null,
+  ): Promise<boolean>;
 }
 
 export class RateLimitEnforcer implements INotificationRateLimiter {

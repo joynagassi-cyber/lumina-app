@@ -19,21 +19,22 @@ export type { DomainEvent as FormDomainEvent, IEventPublicationPort } from './po
 
 // ---- Entities ----
 export { FormDefinition, PublishedFormModificationError } from './domain/entities/form-definition.entity';
-export { FormField, FormValidationResult } from './domain/entities/form-field.entity';
+export { FormField } from './domain/entities/form-field.entity';
+export type { FormValidationResult } from './domain/entities/form-field.entity';
 
 // ---- Value Objects ----
 export { FormId, InvalidFormIdError } from './domain/value-objects/form-id.vo';
 export { ModelRef, InvalidModelRefError } from './domain/value-objects/model-ref.vo';
 export {
   FieldDef,
-  FieldDefProps,
-  FieldType,
   VALID_FIELD_TYPES,
   assertValidFieldType,
   InvalidFieldDefError,
   InvalidFieldTypeError,
 } from './domain/value-objects/field-def.vo';
-export { SectionDef, SectionDefProps, InvalidSectionDefError } from './domain/value-objects/section-def.vo';
+export type { FieldDefProps, FieldType } from './domain/value-objects/field-def.vo';
+export { SectionDef, InvalidSectionDefError } from './domain/value-objects/section-def.vo';
+export type { SectionDefProps } from './domain/value-objects/section-def.vo';
 export { FormVersion, InvalidFormVersionError } from './domain/value-objects/form-version.vo';
 
 // ---- Services ----
@@ -67,7 +68,6 @@ export {
 export type {
   CreateFormInput,
   SubmitFormDataInput,
-  FieldDefProps,
   FormProfileDto,
   FormValidationOutput,
 } from './application/form.service';

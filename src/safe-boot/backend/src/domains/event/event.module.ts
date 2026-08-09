@@ -12,10 +12,10 @@
  */
 
 import { Module, DynamicModule, Provider } from '@nestjs/common';
-import { EventService } from '../application/event.service';
+import { EventService } from './application/event.service';
 import { PrismaEventRepository } from './infrastructure/adapters/prisma-event.repository';
 import type { IEventRepository } from './ports/event-port.interface';
-import type { DomainEventPublisher } from '../application/event-publisher.interface';
+import type { DomainEventPublisher } from './application/event-publisher.interface';
 
 const EVENT_REPOSITORY_TOKEN = 'IEventRepository' as const;
 const EVENT_PUBLISHER_TOKEN = 'IEventPublisher' as const;

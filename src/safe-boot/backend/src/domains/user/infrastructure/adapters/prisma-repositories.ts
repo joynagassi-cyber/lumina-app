@@ -8,13 +8,13 @@
  * @traceability PAS-v1 Dependency Inversion Principle → Prisma 5+ adapter
  */
 
-import { Injectable } from '@nestjs/common';
-import type { IUserRepository, ISessionRepository, ICredentialRepository } from '../ports';
-import type { User } from '../domain/entities/user';
-import type { EmailAddress } from '../domain/value-objects/email-address';
-import type { UserRole, RoleName } from '../domain/value-objects/user-role';
-import type { PhoneNumber } from '../domain/value-objects/phone-number';
-import type { PasswordHash } from '../domain/value-objects/password-hash';
+import { Injectable, Inject } from '@nestjs/common';
+import type { IUserRepository, ISessionRepository, ICredentialRepository } from '../../ports';
+import type { User } from '../../domain/entities/user';
+import type { EmailAddress } from '../../domain/value-objects/email-address';
+import type { UserRole, RoleName } from '../../domain/value-objects/user-role';
+import type { PhoneNumber } from '../../domain/value-objects/phone-number';
+import type { PasswordHash } from '../../domain/value-objects/password-hash';
 import { ConflictError, NotFoundError } from '@shared/errors';
 
 // Internal persistence shape (matches PG-Schema Table 4 users)

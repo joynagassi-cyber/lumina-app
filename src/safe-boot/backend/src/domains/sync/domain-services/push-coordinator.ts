@@ -6,12 +6,13 @@
 
 import { PendingOperationRecord } from '../ports/pending-operations-port.interface';
 import { IRemoteApiPort, ConflictRecord } from '../ports/remote-api-port.interface';
-import { IPendingOperationsPort } from '../ports/pending-operations-port.interface';
-import { ISyncStatusRepositoryPort } from '../ports/sync-status-repository-port.interface';
+import type { IPendingOperationsPort } from '../ports/pending-operations-port.interface';
+import type { ISyncStatusRepositoryPort } from '../ports/sync-status-repository-port.interface';
 import { BatchPolicy } from '../policies/batch-policy';
 import { LocalFirstPolicy } from '../policies/local-first-policy';
 import { SyncStatus } from '../value-objects/sync-status.vo';
-import { ConflictResolutionPolicy, ConflictStrategy } from '../policies/conflict-resolution-policy';
+import { ConflictResolutionPolicy } from '../policies/conflict-resolution-policy';
+import { ConflictStrategy } from '../value-objects/conflict-strategy.vo';
 
 const MAX_BATCH = 50;
 

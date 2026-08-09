@@ -8,10 +8,10 @@
 import { DEFAULT_SETTINGS } from '../domain/entities/setting-entry.entity';
 import { ConfigSettingKey } from '../domain/value-objects/setting-key.vo';
 import { ConfigSettingValue, TypedSettingValue } from '../domain/value-objects/setting-value.vo';
-import { SettingResolver } from '../domain/services/setting-resolver.service';
+import { SettingResolver, ISettingStore } from '../domain/services/setting-resolver.service';
 import { SettingValidator } from '../domain/services/setting-validator.service';
 import { FormatValidationPolicy } from '../domain/policies/format-validation-policy';
-import type { ISettingPort, SettingRecord } from '../ports/configuration.port';
+import type { ISettingPort, SettingKey, SettingRecord } from '../ports/configuration.port';
 
 export interface UpdateSettingInput {
   orgId: string;
@@ -37,7 +37,7 @@ export class ConfigurationService {
     orgId: string,
   ): Promise<TypedSettingValue> {
     const resolver = new SettingResolver(this.createStore(orgId));
-    return resolver.resolve(key);
+    return resolver.resolve(key.value);
   }
 
   /**
@@ -54,21 +54,21 @@ export class ConfigurationService {
    */
   async updateSetting(input: UpdateSettingInput): Promise<void> {
     // Validate format per FormatValidationPolicy
-    const validationResult = FormatValidationPolicy.validate(input.key, input.value);
+    const validationResult = FormatValidationPolicy.validate(input.key.value, input.value);
     if (!validationResult.valid) {
       throw new SettingValidationError(validationResult.errors.join('; '));
     }
 
     // Validate typed value
     try {
-      ConfigSettingValue.create({ key: input.key, rawValue: input.value });
+      ConfigSettingValue.create({ key: input.key.value, rawValue: input.value });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       throw new SettingValidationError(message);
     }
 
     await this.settingPort.update(
-      input.key,
+      input.key.value,
       input.orgId,
       { value: input.value },
       input.updatedBy,
@@ -82,7 +82,7 @@ export class ConfigurationService {
   async bulkUpdateSettings(input: BulkUpdateInput): Promise<void> {
     // Validate all first (fail-fast)
     const errors = SettingValidator.validateBatch(
-      input.updates.map((u) => ({ key: u.key, value: u.value })),
+      input.updates.map((u) => ({ key: u.key.value, value: u.value })),
     );
     if (errors.length > 0) {
       throw new SettingValidationError(
@@ -91,7 +91,7 @@ export class ConfigurationService {
     }
 
     const updates = input.updates.map((u) => ({
-      key: u.key,
+      key: u.key.value,
       valeur: { value: u.value } as Record<string, unknown>,
     }));
 
@@ -111,7 +111,7 @@ export class ConfigurationService {
   private createStore(orgId: string): ISettingStore {
     return {
       getKey: async (key: string): Promise<TypedSettingValue | undefined> => {
-        const record = await this.settingPort.findByKeyAndOrg(key as ConfigSettingKey, orgId);
+        const record = await this.settingPort.findByKeyAndOrg(key as SettingKey, orgId);
         if (!record) return undefined;
         // Deserialize the JSONB value back to typed value
         const val = record.valeur;

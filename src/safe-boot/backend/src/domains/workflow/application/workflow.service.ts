@@ -18,12 +18,12 @@ import { MaxStepsPolicy } from '../domain/policies/max-steps-policy';
 import { TimeoutEscalationPolicy } from '../domain/policies/timeout-escalation-policy';
 import { NoFinancialModificationPolicy } from '../domain/policies/no-financial-modification-policy';
 import type { IWorkflowInstanceRepository, IWorkflowStepRepository, IWorkflowLogRepository } from '../ports/repository.port';
-import type { DomainEvent, IEventPublicationPort } from '../ports/event-pub.port';
-import type { IAuthorizationPort, RoleType } from '../ports/auth.port';
-import type { IClockPort } from '../ports/clock.port';
-import type { IUuidPort } from '../ports/uuid.port';
-import type { IAuditPort, AuditPayload } from '../ports/audit.port';
-import type { ILoggerPort } from '../ports/logging.port';
+import type { DomainEvent, IEventPublicationPort } from '../../organization/ports/event-pub.port';
+import type { IAuthorizationPort, RoleType } from '../../organization/ports/auth.port';
+import type { IClockPort } from '../../organization/ports/clock.port';
+import type { IUuidPort } from '../../organization/ports/uuid.port';
+import type { IAuditPort, AuditPayload } from '../../organization/ports/audit.port';
+import type { ILoggerPort } from '../../organization/ports/logging.port';
 
 import {
   WorkflowTriggered,

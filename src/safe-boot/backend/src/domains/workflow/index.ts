@@ -134,12 +134,12 @@ export type {
   WorkflowLogEntry,
   FindLogsByInstanceResult,
 } from './ports/repository.port';
-export type { IEventPublicationPort, DomainEvent as EventPubDomainEvent } from './ports/event-pub.port';
-export type { IAuthorizationPort, RoleType } from './ports/auth.port';
-export type { IClockPort } from './ports/clock.port';
-export type { IUuidPort } from './ports/uuid.port';
-export type { IAuditPort, AuditPayload } from './ports/audit.port';
-export type { ILoggerPort } from './ports/logging.port';
+export type { IEventPublicationPort, DomainEvent as EventPubDomainEvent } from '../organization/ports/event-pub.port';
+export type { IAuthorizationPort, RoleType } from '../organization/ports/auth.port';
+export type { IClockPort } from '../organization/ports/clock.port';
+export type { IUuidPort } from '../organization/ports/uuid.port';
+export type { IAuditPort, AuditPayload } from '../organization/ports/audit.port';
+export type { ILoggerPort } from '../organization/ports/logging.port';
 
 // ---- Application Service ----
 export {

@@ -12,7 +12,11 @@ export interface Metadata {
 export function DecoratorName(
   _metadata: Record<string, unknown>,
 ): PropertyDecorator & MethodDecorator {
-  return (_target, _propertyKey, descriptor?) => {
+  return (
+    _target: object,
+    _propertyKey: string | symbol,
+    descriptor?: PropertyDescriptor,
+  ): void => {
     // TODO: Implement domain-specific decorator logic
   };
 }
