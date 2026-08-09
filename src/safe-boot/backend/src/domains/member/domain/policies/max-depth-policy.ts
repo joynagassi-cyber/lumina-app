@@ -51,10 +51,10 @@ export class MaxDepthPolicy {
   }
 
   /**
-   * Returns the remaining depth budget from a given level.
+   * Returns the remaining depth budget from a given level, clamped to [0, MAX_DEPTH].
    */
   static remainingDepth(currentDepth: number): number {
     const remaining = this.MAX_DEPTH - currentDepth;
-    return Math.max(remaining, 0);
+    return Math.min(this.MAX_DEPTH, Math.max(remaining, 0));
   }
 }
