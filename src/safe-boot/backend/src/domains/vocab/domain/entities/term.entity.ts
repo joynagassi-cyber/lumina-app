@@ -20,7 +20,7 @@ export interface TermProps {
   readonly key: string;               // cle_term — stable forever
   labelFr: string;                    // mutable
   labelEn: string;                    // mutable
-  readonly description?: string | null;
+  description?: string | null;
   isDeprecated: boolean;
   deprecatedAt: Date | null;
   readonly createdAt: Date;

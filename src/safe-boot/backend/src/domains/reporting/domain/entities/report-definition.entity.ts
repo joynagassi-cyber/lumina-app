@@ -24,7 +24,7 @@ export class ReportDefinition {
 
   static create(params: Omit<ReportDefinitionProps, 'id' | 'createdAt'>): ReportDefinition {
     const now = new Date();
-    return new ReportDefinition({ ...params, id: params.id ?? uuidv4(), createdAt: now });
+    return new ReportDefinition({ ...params, id: uuidv4(), createdAt: now });
   }
 
   get id(): string { return this.props.id; }

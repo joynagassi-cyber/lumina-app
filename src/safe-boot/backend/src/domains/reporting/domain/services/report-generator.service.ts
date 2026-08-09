@@ -7,7 +7,7 @@
 
 import { BalanceTotals, BalanceInvariantViolationError } from '../value-objects/balance-totals.vo';
 import { GeneratedReport } from '../entities/generated-report.entity';
-import type { RawTransactionRecord, CategoryBreakdown } from '../ports/reporting.port';
+import type { RawTransactionRecord, CategoryBreakdown } from '../../ports/reporting.port';
 import { BalanceCalculated } from '../entities/generated-report.entity';
 
 export interface GenerateReportInput {
@@ -48,6 +48,7 @@ export class ReportGenerator {
       orgId: input.orgId,
       periodStart: input.periodStart,
       periodEnd: input.periodEnd,
+      transactionCount: input.transactions.filter((t) => t.est_synchronise).length,
       scope: input.scope,
       balance: BalanceTotals.fromProps({
         totalIncome: computedIncome,

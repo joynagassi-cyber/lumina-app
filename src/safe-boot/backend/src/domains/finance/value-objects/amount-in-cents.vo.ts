@@ -6,30 +6,29 @@
  */
 
 export class AmountInCents {
-  constructor(private readonly value: number) {
-    if (!Number.isInteger(value) || value <= 0) {
-      throw new Error(`AmountInCents: must be a positive integer (cents), got ${value}`);
+  constructor(private readonly _value: number) {
+    if (!Number.isInteger(_value) || _value <= 0) {
+      throw new Error(`AmountInCents: must be a positive integer (cents), got ${_value}`);
     }
   }
 
   get value(): number {
-    return this.value;
+    return this._value;
   }
 
-  /** Convert to displayable decimal string in primary currency unit. */
+  /** Convert to displayable decimal string in primary currency unit (1 unit = 100 cents). */
   toDecimalString(decimals: number = 2): string {
-    const divisor = Math.pow(10, decimals);
-    return (this.value / divisor).toFixed(decimals);
+    return (this._value / 100).toFixed(decimals);
   }
 
   /** Add two amounts together. */
   add(other: AmountInCents): AmountInCents {
-    return new AmountInCents(this.value + other.value);
+    return new AmountInCents(this._value + other.value);
   }
 
   /** Subtract another amount (throws if result would be non-positive). */
   subtract(other: AmountInCents): AmountInCents {
-    const result = this.value - other.value;
+    const result = this._value - other.value;
     if (result <= 0) {
       throw new Error('AmountInCents: subtraction would produce non-positive amount');
     }
@@ -37,10 +36,10 @@ export class AmountInCents {
   }
 
   equals(other: AmountInCents): boolean {
-    return this.value === other.value;
+    return this._value === other.value;
   }
 
   toString(): string {
-    return String(this.value);
+    return String(this._value);
   }
 }

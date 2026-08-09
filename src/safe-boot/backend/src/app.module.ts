@@ -1,33 +1,63 @@
 /**
  * Lumina Backend — Root AppModule
  *
- * Lazy-loading modules per aggregate domain.
- * Implements Ports & Adapters architecture (PAS-v1).
- * Dependency Inversion: Domain → Port Interface ← Infrastructure Adapter
+ * Phase C (B1, ADR-018) : migration TypeORM → Prisma. Le conteneur NestJS joue
+ * le rôle de CompositionRoot RTS-001 : graphe de modules = DependencyResolver.
+ * Modules câblés pour le MVP Jour 1 : Finance, Reporting, Vocab (périmètre
+ * grand livre — MVP-JOUR1-SPEC). Les autres domaines (identity/organization…)
+ * seront réactivés dans une phase ultérieure.
  *
- * @traceability DOC-000 → PAS-003 (Dependency Rules) → Implementation
+ * @traceability ADR-018 (NestJS DI ↔ CompositionRoot RTS-001), MVP-JOUR1-SPEC §3 (B1)
  */
 
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 
+import { PrismaModule } from './infrastructure/prisma/prisma.module';
+import { FinanceModule } from './domains/finance';
+import { ReportingModule } from './domains/reporting/reporting.module';
+import { VocabModule } from './domains/vocab/vocab.module';
+import { TransactionPrismaAdapter } from './infrastructure/adapters/prisma/finance/transaction-prisma-adapter';
+import { InMemoryDomainEventPublisher } from './domains/finance/shared/events/in-memory-event-publisher';
+import {
+  MemberPortNotWired,
+  EventPortNotWired,
+  ArchiveEntryPortNotWired,
+  NotificationPortNotWired,
+} from './infrastructure/adapters/prisma/finance/not-wired-ports';
+
+/** Publisher d'événements in-process (swap MQ en production). */
+const eventPublisher = new InMemoryDomainEventPublisher();
+
 @Module({
   imports: [
-    // Global config — loaded from env per ITS-V1 NB-TECH-005
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-
-    // API rate limiting — RTS-v1 boundary protection
-    ThrottlerModule.forRoot([{
-      ttl: 60_000,   // 1 minute
-      limit: 100,     // 100 requests per minute
-    }]),
-
-    // Scheduled jobs — sync reconciliation, purge, notifications
+    // Foundation modules
+    ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     ScheduleModule.forRoot(),
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET || 'dev-secret',
+      signOptions: { expiresIn: process.env.JWT_EXPIRY || '15m' },
+    }),
+    PrismaModule,
+
+    // Domain modules — périmètre MVP Jour 1 (grand livre)
+    FinanceModule.forRoot(
+      new TransactionPrismaAdapter(),
+      new MemberPortNotWired(),
+      new EventPortNotWired(),
+      new ArchiveEntryPortNotWired(),
+      new NotificationPortNotWired(),
+      eventPublisher,
+    ),
+    ReportingModule.forRoot(undefined),
+    VocabModule.forRoot(undefined, {
+      handle: async () => {},
+    } as never),
   ],
   controllers: [],
   providers: [],

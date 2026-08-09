@@ -6,17 +6,17 @@
 
 import { ResourceId } from '../value-objects/resource-id.vo';
 import { AmountInCents } from '../value-objects/amount-in-cents.vo';
-import { TransactionState, TransactionType } from '../value-objects/index';
+import { TransactionState } from '../value-objects/index';
 import { ResourceScope } from '../value-objects/resource-scope.vo';
 import { ResourceMetadata } from '../value-objects/resource-metadata.vo';
-import { TransactionRecord, TransactionRecordProps } from '../entities/transaction-record.entity';
+import { TransactionRecord, TransactionRecordProps, TransactionType } from '../entities/transaction-record.entity';
 import { MemberRecord, MemberRecordProps } from '../entities/member-record.entity';
 import { EventRecord, EventRecordProps } from '../entities/event-record.entity';
 import { ArchiveEntryRecord, ArchiveEntryRecordProps } from '../entities/archive-entry-record.entity';
 import { NotificationRecord, NotificationRecordProps, NotificationChannel, NotificationSeverity, NotificationDeliveryStatus } from '../entities/notification-record.entity';
 
 export class ResourceFactory {
-  static createTransaction(props: Omit<TransactionRecordProps, 'id'>): TransactionRecord {
+  static createTransaction(props: Omit<TransactionRecordProps, 'id' | 'version' | 'synced' | 'createdAt' | 'updatedAt'>): TransactionRecord {
     return TransactionRecord.create({
       ...props,
       id: ResourceId.generate(),
@@ -58,6 +58,7 @@ export class ResourceFactory {
   static createCompensation(
     originalTxn: {
       amount: AmountInCents;
+      type: TransactionType;
       orgId: string;
       createdBy: string;
       categoryRef: string;
@@ -81,6 +82,8 @@ export class ResourceFactory {
       date: originalTxn.date,
       description: `Compensation for original transaction — INV-001`,
       compensatesFor: null, // set by the application service after persisting the link
+      approvedBy: null,
+      approvedAt: null,
       metadata: new ResourceMetadata({ compensationTargetId: null }),
     });
   }

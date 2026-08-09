@@ -5,18 +5,18 @@
  * @traceability DOC-012 Aggregate3 (port boundaries), PAS-v1 (Ports & Adapters)
  */
 
-import { TransactionRecord, TransactionType } from './entities/transaction-record.entity';
-import { MemberRecord } from './entities/member-record.entity';
-import { EventRecord } from './entities/event-record.entity';
-import { ArchiveEntryRecord } from './entities/archive-entry-record.entity';
-import { NotificationRecord } from './entities/notification-record.entity';
-import { AmountInCents } from './value-objects/amount-in-cents.vo';
-import { ResourceId } from './value-objects/resource-id.vo';
-import { ResourceVersion } from './value-objects/resource-version.vo';
-import { ResourceMetadata } from './value-objects/resource-metadata.vo';
-import { ResourceScope } from './value-objects/resource-scope.vo';
-import { TransactionReference } from './value-objects/transaction-reference.vo';
-import type { PaginatedResult } from '../../shared/types';
+import { TransactionRecord, TransactionType } from '../entities/transaction-record.entity';
+import { MemberRecord } from '../entities/member-record.entity';
+import { EventRecord } from '../entities/event-record.entity';
+import { ArchiveEntryRecord } from '../entities/archive-entry-record.entity';
+import { NotificationRecord } from '../entities/notification-record.entity';
+import { AmountInCents } from '../value-objects/amount-in-cents.vo';
+import { ResourceId } from '../value-objects/resource-id.vo';
+import { ResourceVersion } from '../value-objects/resource-version.vo';
+import { ResourceMetadata } from '../value-objects/resource-metadata.vo';
+import { ResourceScope } from '../value-objects/resource-scope.vo';
+import { TransactionReference } from '../value-objects/transaction-reference.vo';
+import type { PaginatedResult } from '../../../shared/types';
 
 // --- Transaction Ports ---
 

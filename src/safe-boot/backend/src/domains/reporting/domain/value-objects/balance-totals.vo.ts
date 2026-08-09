@@ -6,7 +6,7 @@
  *   → BR-RPT-005: Only synced=1 (approved) transactions participate
  */
 
-import { CategoryBreakdown } from '../ports/reporting.port';
+import { CategoryBreakdown } from '../../ports/reporting.port';
 
 export interface BalanceTotalsProps {
   readonly totalIncome: number;

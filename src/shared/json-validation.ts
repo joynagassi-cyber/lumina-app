@@ -23,7 +23,7 @@ export interface ValidationFailure {
   tier: 'parse-failed' | 'schema-failed' | 'all-failed';
   attemptCount: number;
   errors: string[];
-  ajvErrors?: ReturnType<ValidateFunction>['errors'];
+  ajvErrors?: ValidateFunction['errors'];
 }
 
 export type SchemaValidationResult<T> = ValidationResult<T> | ValidationFailure;

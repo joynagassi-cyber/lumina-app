@@ -8,6 +8,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import { BalanceTotals } from '../value-objects/balance-totals.vo';
 
+/** Rapport déjà signé — immuable (BR-RPT-004). */
+export class AlreadySignedError extends Error {
+  constructor(reportId: string) {
+    super(`Report ${reportId} is already signed (BR-RPT-004)`);
+    this.name = 'AlreadySignedError';
+  }
+}
+
 export interface GeneratedReportProps {
   id: string;
   orgId: string;
@@ -40,7 +48,7 @@ export class GeneratedReport {
     params.balance.validateBalance();
 
     const now = new Date();
-    return new GeneratedReport({ ...params, id: params.id ?? uuidv4(), createdAt: now });
+    return new GeneratedReport({ ...params, id: uuidv4(), createdAt: now });
   }
 
   get id(): string { return this.props.id; }

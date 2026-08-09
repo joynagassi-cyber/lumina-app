@@ -3,7 +3,7 @@
  * Used when loading config from files or network in offline-first scenarios.
  */
 
-import { validateConfig, type SchemaValidationResult } from './json-validation';
+import { validateConfig } from './json-validation';
 import type { JSONSchema7 } from 'json-schema';
 
 export interface ParsedJSONResult<T = unknown> {

@@ -6,22 +6,22 @@
  */
 
 export class ResourceVersion {
-  constructor(private readonly value: number) {
-    if (!Number.isInteger(value) || value < 1) {
-      throw new Error(`ResourceVersion: must be a positive integer, got ${value}`);
+  constructor(private readonly _value: number) {
+    if (!Number.isInteger(_value) || _value < 1) {
+      throw new Error(`ResourceVersion: must be a positive integer, got ${_value}`);
     }
   }
 
   get value(): number {
-    return this.value;
+    return this._value;
   }
 
   /** Return the next version number. */
   next(): ResourceVersion {
-    return new ResourceVersion(this.value + 1);
+    return new ResourceVersion(this._value + 1);
   }
 
   equals(other: ResourceVersion): boolean {
-    return this.value === other.value;
+    return this._value === other.value;
   }
 }

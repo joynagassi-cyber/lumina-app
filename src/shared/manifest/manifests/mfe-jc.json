@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "orgId": "mfe-jc",
+  "name": "Mission Fête de Jésus-Christ (MFE-JC)",
+  "deployedAt": "2026-08-08T00:00:00.000Z",
+  "branding": {
+    "accent": "#FF6B00",
+    "theme": "dark"
+  },
+  "configuration": {
+    "currency": "XAF",
+    "locale": "fr",
+    "timezone": "Africa/Douala"
+  },
+  "vocabulary": [
+    {
+      "id": "finance_categories",
+      "terms": [
+        { "key": "dime", "label": { "fr": "Dîme", "en": "Tithe" } },
+        { "key": "offrande", "label": { "fr": "Offrande", "en": "Offering" } },
+        { "key": "don", "label": { "fr": "Don", "en": "Donation" } },
+        { "key": "budget_groupe", "label": { "fr": "Budget groupe", "en": "Group budget" } },
+        { "key": "depense_culte", "label": { "fr": "Dépense culte", "en": "Worship expense" } },
+        { "key": "transport", "label": { "fr": "Transport", "en": "Transport" } },
+        { "key": "fournitures", "label": { "fr": "Fournitures", "en": "Supplies" } },
+        { "key": "autre", "label": { "fr": "Autre", "en": "Other" } }
+      ]
+    },
+    {
+      "id": "transaction_types",
+      "terms": [
+        { "key": "income", "label": { "fr": "Entrée", "en": "Income" } },
+        { "key": "expense", "label": { "fr": "Sortie", "en": "Expense" } },
+        { "key": "transfer", "label": { "fr": "Transfert", "en": "Transfer" } }
+      ]
+    },
+    {
+      "id": "transaction_states",
+      "terms": [
+        { "key": "draft", "label": { "fr": "Brouillon", "en": "Draft" } },
+        { "key": "pending", "label": { "fr": "En attente", "en": "Pending" } },
+        { "key": "approved", "label": { "fr": "Approuvé", "en": "Approved" } },
+        { "key": "rejected", "label": { "fr": "Rejeté", "en": "Rejected" } }
+      ]
+    },
+    {
+      "id": "group_types",
+      "terms": [
+        { "key": "ministere", "label": { "fr": "Ministère", "en": "Ministry" } },
+        { "key": "service", "label": { "fr": "Service", "en": "Service" } }
+      ]
+    }
+  ],
+  "features": [
+    { "id": "finance", "version": "1.0.0", "toggleKey": "feature_finance", "enabled": true, "requiredPermissions": ["transaction:read", "transaction:create", "transaction:approve"] },
+    { "id": "groups", "version": "1.0.0", "toggleKey": "feature_groups", "enabled": true, "requiredPermissions": ["group:read"] },
+    { "id": "members_placeholder", "version": "1.0.0", "toggleKey": "feature_members", "enabled": false, "requiredPermissions": ["member:read"] },
+    { "id": "settings_placeholder", "version": "1.0.0", "toggleKey": "feature_settings", "enabled": false, "requiredPermissions": ["config:read"] }
+  ],
+  "permissions": {
+    "roles": [
+      { "name": "admin", "permissions": ["*"] },
+      { "name": "treasurer", "permissions": ["transaction:read", "transaction:create", "transaction:approve", "transaction:reject", "reporting:read", "reporting:export", "group:read", "vocab:read"] },
+      { "name": "pastor", "permissions": ["transaction:read", "reporting:read", "group:read"] }
+    ]
+  },
+  "forms": [
+    {
+      "id": "transaction_create",
+      "fields": [
+        { "key": "type", "type": "select", "required": true, "optionsVocab": "transaction_types" },
+        { "key": "amount", "type": "currency", "required": true, "min": 1 },
+        { "key": "category", "type": "select", "required": true, "optionsVocab": "finance_categories" },
+        { "key": "date", "type": "date", "required": true },
+        { "key": "groupId", "type": "select", "required": false },
+        { "key": "description", "type": "text", "required": false, "max": 500 }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "id": "transaction_state_machine",
+      "name": "Cycle de vie transaction",
+      "version": "1.0.0",
+      "nodes": [
+        { "id": "start", "type": "start", "transitions": ["draft"] },
+        { "id": "draft", "type": "task", "transitions": ["pending"] },
+        { "id": "pending", "type": "approval", "transitions": ["approved", "rejected"] },
+        { "id": "approved", "type": "end", "transitions": [] },
+        { "id": "rejected", "type": "task", "transitions": ["draft"] }
+      ]
+    }
+  ]
+}

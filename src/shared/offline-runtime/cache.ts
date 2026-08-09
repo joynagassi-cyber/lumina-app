@@ -36,6 +36,29 @@ class L1Cache {
   }
 
   get<T>(orgId: string, kind: string, version?: number): T | null {
+    if (version !== undefined) {
+      return this._read<T>(orgId, kind, version);
+    }
+    // Versionless read: return the NEWEST cached variant of the key
+    // (setManifest stores under versioned keys — a versionless lookup must still hit L1).
+    const prefix = this.key(orgId, kind) + ':';
+    let bestEntry: { data: unknown; ts: number } | null = null;
+    let bestVersion = -1;
+    for (const [k, entry] of this.store) {
+      if (!k.startsWith(prefix)) continue;
+      const suffix = k.slice(prefix.length);
+      const v = Number(suffix);
+      if (Number.isInteger(v) && v > bestVersion) {
+        bestVersion = v;
+        bestEntry = entry;
+      }
+    }
+    if (!bestEntry) return null;
+    if (Date.now() - bestEntry.ts > STALE_MARKER_SEC * 1000) return null; // logical staleness
+    return bestEntry.data as T;
+  }
+
+  private _read<T>(orgId: string, kind: string, version: number): T | null {
     const entry = this.store.get(this.key(orgId, kind, version));
     if (!entry) return null;
     if (Date.now() - entry.ts > STALE_MARKER_SEC * 1000) return null; // logical staleness
@@ -159,6 +182,8 @@ export class OfflineRuntimeCache {
 
     if (orgId !== '*' && version !== undefined) {
       await this.l2.deleteManifest(orgId, version);
+      // L3 must be purged too — otherwise a "deleted" manifest resurrects from disk.
+      await this.l3.deleteManifestFile(orgId, version).catch(() => { /* best-effort */ });
     }
   }
 
