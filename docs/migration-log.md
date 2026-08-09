@@ -111,7 +111,7 @@ Ce log documente tous les changements de noms, déplacements et modifications st
 |---|--------|-------------|----------|
 | 38 | Refactor | Corriger les erreurs de syntaxe workflow/api.ts et workflow/components.tsx (parens excédentaires) | P1 |
 | 39 | Cleanup | Supprimer les dossiers vides dans src/core/ (capability, json-generation, network, sync, theme, vocabulary) | P2 |
-| 40 | ✅ RÉSOLU (2026-08-09) | **src/safe-boot/ = source de vérité active** ; backup-structure/ = archive obsolète (untracked, non référencée, conservée sur disque) | — |
+| 40 | ✅ RÉSOLU (2026-08-09) | **src/safe-boot/ = source de vérité active** ; backup-structure/ = archive obsolète (untracked, non référencée) — **supprimée du disque le 2026-08-09** | — |
 | 41 | Update | Finaliser les imports restants dans le frontend qui pourraient référencer les anciens noms (si存在一些 direct imports through barrel not yet updated) | P3 |
 | 42 | Verify | Exécuter tsc frontend après toutes les corrections pour s'assurer d'une compilation propre | P1 |
 

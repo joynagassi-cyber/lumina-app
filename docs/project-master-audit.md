@@ -239,8 +239,7 @@ lumina-app/
 ├── .github/                   : GitHub Actions CI/CD
 ├── .husky/                    : Git hooks
 ├── artifacts/                 : Rapports d'analyse
-├── backup-structure/          : ARCHIVE OBSOLÈTE (untracked, non référencée)
-│   └── safe-boot/             : Référence historique uniquement
+├── backup-structure/          : SUPPRIMÉE (2026-08-09 — archive obsolète, untracked, non référencée)
 ├── docs/                      : Documentation
 │   └── 00-canonical/          : Documents canoniques (186 fichiers .md)
 ├── frontend/                  : Frontend (copies multiples à unifier)

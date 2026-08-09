@@ -144,7 +144,7 @@ Les dossiers `src/core/*` (capacity, json-generation, network, sync, theme, voca
 
 **Décision finale :** `src/safe-boot/` est la **source de vérité active** (backend NestJS + frontend). Tout le travail validé y vit : tsc 0 erreur, schéma Prisma, suite jest 760/760, CI verte.
 
-`backup-structure/` est une **archive obsolète** : entièrement untracked (jamais commitée), non référencée par l'arbre commité (workspaces = `src/safe-boot`), et dont le backend est en retard (444 vs 506 .ts, schema.prisma divergent). Elle est conservée sur disque à titre d'archive mais **ne doit plus être considérée comme source de vérité** ni référencée dans les configs.
+`backup-structure/` était une **archive obsolète** : entièrement untracked (jamais commitée), non référencée par l'arbre commité (workspaces = `src/safe-boot`), et dont le backend était en retard (444 vs 506 .ts, schema.prisma divergent). **Elle a été supprimée du disque le 2026-08-09** (aucun fichier tracké, aucune référence — suppression sans impact git).
 
 ---
 
