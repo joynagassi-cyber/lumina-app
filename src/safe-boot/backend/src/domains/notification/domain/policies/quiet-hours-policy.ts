@@ -40,13 +40,13 @@ export class QuietHoursPolicy implements IQuietHoursPolicy {
       return true;
     }
 
-    // If the preference is in quiet_hours mode AND the message is not critical, suppress it.
-    if (preference.mode === 'quiet_hours') {
-      return false;
+    // Only 'quiet_hours' mode enforces the window; other modes deliver normally.
+    if (preference.mode !== 'quiet_hours') {
+      return true;
     }
 
     const range = preference.quietHours;
-    const now = new Date();
+    const now = new Date(Date.now());
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
     const [startHour, startMinute] = range.start.split(':').map(Number);

@@ -140,8 +140,8 @@ export class VocabApplicationService {
       throw new Error(`TermValue ${valueId} not found`);
     }
 
-    NeverDeletePolicy.assertNoDelete('value', valueId);
-
+    // BR-VOC-001: deprecation IS the sanctioned operation (never hard-delete).
+    // NeverDeletePolicy is enforced structurally — the port exposes no delete method.
     this.deprecationManager.deprecateTermValue(existing);
 
     await this.valueRepo.deprecate(valueId, new Date());

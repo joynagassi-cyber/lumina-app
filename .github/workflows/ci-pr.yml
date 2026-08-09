@@ -1,0 +1,81 @@
+# ============================================================================
+# CI PR — Gate de vérification : tsc --noEmit + prisma validate + jest
+#
+# S'exécute sur chaque PR vers main (et à la demande via workflow_dispatch).
+#
+# Stratégie d'installation :
+#   Le monorepo racine référence le workspace frontend (expo) dont le
+#   lockfile racine est désynchronisé — `npm ci` / `bun install --frozen-lockfile`
+#   à la racine échouent (ETARGET babel-preset-expo). On installe donc
+#   uniquement le backend avec `--no-workspaces` (stratégie validée en local),
+#   puis on exécute :
+#     1. tsc --noEmit            → typage backend (0 erreur attendu)
+#     2. prisma validate         → schéma Prisma valide
+#     3. jest --config racine    → suite de tests unitaires tests/unit
+#                                  (config jest racine, exécutée depuis le backend
+#                                  où les dépendances de test sont installées)
+# ============================================================================
+
+name: CI PR - tsc + prisma + jest
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # prisma validate ne se connecte pas : valeur factice suffisante.
+  DATABASE_URL: postgresql://lumina:lumina@localhost:5432/lumina
+
+jobs:
+  verify:
+    name: tsc / prisma / jest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/safe-boot/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install backend dependencies
+        run: |
+          pwd
+          node --version
+          npm --version
+          npm install --no-workspaces
+          # Diagnostic : vérifie que les bins critiques existent (npm 10 vs 11
+          # divergence possible sur la génération des liens .bin).
+          ls -1 node_modules/.bin | grep -E "^(tsc|jest|prisma)$" \
+            || echo "!! bins tsc/jest/prisma manquants dans node_modules/.bin"
+          test -d node_modules/typescript \
+            && echo "typescript: present" || echo "!! typescript ABSENT"
+
+      # Invocations directes des bins locaux (pas de `npx`) : déterministe,
+      # et évite le piège où npx télécharge le paquet leurre `tsc@2.0.4`
+      # quand le binaire local n'est pas résolu.
+      - name: Typecheck backend (tsc --noEmit)
+        run: ./node_modules/.bin/tsc --noEmit
+
+      - name: Validate Prisma schema
+        run: ./node_modules/.bin/prisma validate
+
+      - name: Run unit tests (jest - suite tests/unit racine)
+        run: |
+          # Libs frontend hoistées localement (react pour src/shared, jsondiffpatch
+          # pour tests/unit/shared) absentes du manifest backend : install éphémère
+          # --no-save (ne touche ni package.json ni le lock commité).
+          npm install --no-save --no-workspaces react@18.3.1 jsondiffpatch@0.6.2
+          # La config jest racine (preset ts-jest) et les imports des specs
+          # résolvent les paquets depuis la racine. Sur CI, tout vit dans le
+          # node_modules du backend : on reproduit le hoisting local (racine
+          # node_modules → backend) par un symlink avant de lancer jest.
+          ln -s "$GITHUB_WORKSPACE/src/safe-boot/backend/node_modules" "$GITHUB_WORKSPACE/node_modules"
+          ./node_modules/.bin/jest --config ../../../jest.config.js
