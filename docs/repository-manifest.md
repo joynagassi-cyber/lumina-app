@@ -15,8 +15,8 @@ lumina-app/
 ├── .github/                             : GitHub Actions CI/CD
 ├── .husky/                              : Git hooks
 ├── artifacts/                           : Rapports d'analyse (généré automatiquement)
-├── backup-structure/                    : CODE PRINCIPAL (source de vérité)
-│   └── safe-boot/
+├── backup-structure/                    : SUPPRIMÉE (2026-08-09 — archive obsolète)
+│   └── safe-boot/                       : (arbre historique — le code actif vit dans src/safe-boot/)
 │       ├── backend/                     : NestJS backend (480 fichiers)
 │       │   ├── src/                     : Code source
 │       │   │   ├── app.module.ts        : Module racine
@@ -65,7 +65,7 @@ lumina-app/
 │   ├── rename-map.md                  : Mapping des changements de noms
 │   └── ...                            
 ├── frontend/                            : Frontend actif (React Native/Expo)
-│   ├── src/                             : Code source (structure similar à backup-structure/frontend)
+│   ├── src/                             : Code source (structure similaire à src/safe-boot/frontend)
 │   └── package.json
 ├── src/                                 : Code runtime et features
 │   ├── features/                        : En développement
