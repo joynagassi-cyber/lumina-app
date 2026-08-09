@@ -46,13 +46,26 @@ jobs:
           node-version: 22
 
       - name: Install backend dependencies
-        run: npm install --no-workspaces
+        run: |
+          pwd
+          node --version
+          npm --version
+          npm install --no-workspaces
+          # Diagnostic : vérifie que les bins critiques existent (npm 10 vs 11
+          # divergence possible sur la génération des liens .bin).
+          ls -1 node_modules/.bin | grep -E "^(tsc|jest|prisma)$" \
+            || echo "!! bins tsc/jest/prisma manquants dans node_modules/.bin"
+          test -d node_modules/typescript \
+            && echo "typescript: present" || echo "!! typescript ABSENT"
 
+      # Invocations directes des bins locaux (pas de `npx`) : déterministe,
+      # et évite le piège où npx télécharge le paquet leurre `tsc@2.0.4`
+      # quand le binaire local n'est pas résolu.
       - name: Typecheck backend (tsc --noEmit)
-        run: npx tsc --noEmit
+        run: ./node_modules/.bin/tsc --noEmit
 
       - name: Validate Prisma schema
-        run: npx prisma validate
+        run: ./node_modules/.bin/prisma validate
 
       - name: Run unit tests (jest - suite tests/unit racine)
-        run: npx jest --config ../../../jest.config.js
+        run: ./node_modules/.bin/jest --config ../../../jest.config.js
