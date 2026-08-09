@@ -68,4 +68,10 @@ jobs:
         run: ./node_modules/.bin/prisma validate
 
       - name: Run unit tests (jest - suite tests/unit racine)
-        run: ./node_modules/.bin/jest --config ../../../jest.config.js
+        run: |
+          # La config jest racine (preset ts-jest) et les imports des specs
+          # résolvent les paquets depuis la racine. Sur CI, tout vit dans le
+          # node_modules du backend : on reproduit le hoisting local (racine
+          # node_modules → backend) par un symlink avant de lancer jest.
+          ln -s "$GITHUB_WORKSPACE/src/safe-boot/backend/node_modules" "$GITHUB_WORKSPACE/node_modules"
+          ./node_modules/.bin/jest --config ../../../jest.config.js
