@@ -35,16 +35,6 @@
     "node_modules",
     "dist",
     "test",
-    "**/*.spec.ts",
-    "src/safe-boot/**",
-    "src/core/**",
-    "src/reporting/**",
-    "src/identity/**",
-    "src/organization/**",
-    "src/project/**",
-    "src/document/**",
-    "src/wiki/**",
-    "src/domains/reporting/application/flexible-reporting.service.ts",
-    "src/domains/reporting/controllers/flexible-report.controller.ts"
+    "**/*.spec.ts"
   ]
 }
