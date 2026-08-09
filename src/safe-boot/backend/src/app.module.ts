@@ -15,13 +15,16 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
+import { RuntimeModule } from './core/runtime/runtime.module';
 import { FinanceModule } from './domains/finance';
 import { ReportingModule } from './domains/reporting/reporting.module';
 import { VocabModule } from './domains/vocab/vocab.module';
 import { TransactionPrismaAdapter } from './infrastructure/adapters/prisma/finance/transaction-prisma-adapter';
-import { InMemoryDomainEventPublisher } from './domains/finance/shared/events/in-memory-event-publisher';
+import { EventEmitter2DomainEventPublisher } from './core/runtime/event-emitter-publisher';
 import {
   MemberPortNotWired,
   EventPortNotWired,
@@ -29,8 +32,8 @@ import {
   NotificationPortNotWired,
 } from './infrastructure/adapters/prisma/finance/not-wired-ports';
 
-/** Publisher d'événements in-process (swap MQ en production). */
-const eventPublisher = new InMemoryDomainEventPublisher();
+/** Publisher d'événements CRT-004 (EventEmitter2, publication après persistance). */
+const eventPublisher = new EventEmitter2DomainEventPublisher(new EventEmitter2());
 
 @Module({
   imports: [
@@ -38,6 +41,8 @@ const eventPublisher = new InMemoryDomainEventPublisher();
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot({ global: true }),
+    RuntimeModule,
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET || 'dev-secret',

@@ -15,8 +15,8 @@ lumina-app/
 ├── .github/                             : GitHub Actions CI/CD
 ├── .husky/                              : Git hooks
 ├── artifacts/                           : Rapports d'analyse (généré automatiquement)
-├── backup-structure/                    : CODE PRINCIPAL (source de vérité)
-│   └── safe-boot/
+├── backup-structure/                    : SUPPRIMÉE (2026-08-09 — archive obsolète)
+│   └── safe-boot/                       : (arbre historique — le code actif vit dans src/safe-boot/)
 │       ├── backend/                     : NestJS backend (480 fichiers)
 │       │   ├── src/                     : Code source
 │       │   │   ├── app.module.ts        : Module racine
@@ -64,9 +64,7 @@ lumina-app/
 │   ├── project-master-audit.md        : Rapport d'audit maître (source de vérité)
 │   ├── rename-map.md                  : Mapping des changements de noms
 │   └── ...                            
-├── frontend/                            : Frontend actif (React Native/Expo)
-│   ├── src/                             : Code source (structure similar à backup-structure/frontend)
-│   └── package.json
+├── frontend/                            : SUPPRIMÉE (2026-08-09 — overlay de travail, voir Clarification frontend)
 ├── src/                                 : Code runtime et features
 │   ├── features/                        : En développement
 │   ├── safe-boot/                       : SOURCE DE VÉRITÉ active (backend NestJS + frontend)
@@ -146,6 +144,12 @@ Les dossiers `src/core/*` (capacity, json-generation, network, sync, theme, voca
 
 `backup-structure/` était une **archive obsolète** : entièrement untracked (jamais commitée), non référencée par l'arbre commité (workspaces = `src/safe-boot`), et dont le backend était en retard (444 vs 506 .ts, schema.prisma divergent). **Elle a été supprimée du disque le 2026-08-09** (aucun fichier tracké, aucune référence — suppression sans impact git).
 
+## Clarification : frontend/ racine vs src/safe-boot/frontend/ — RÉSOLU (2026-08-09)
+
+**Décision finale :** `src/safe-boot/frontend/` est la **copie active** (77 fichiers trackés, workspaces commités, config Expo complète : app.json, babel.config.js, metro.config.js, tailwind.config.js — lançable telle quelle).
+
+`frontend/` (racine) était un **overlay de travail** (182 fichiers, dont un imbriqué `frontend/frontend/`) : sur-ensemble de l'arbre actif (+15 fichiers, 0 manquant) portant le câblage Phase B-6 (`LuminaRuntimeProvider` + alias `@shared/*`), mais **sans les configs Expo** — non lançable sans l'arbre actif. Le câblage B-6 a été **migré à l'identique** dans l'arbre actif (`src/safe-boot/frontend/src/app/_layout.tsx` + alias dans `tsconfig.json`), puis `frontend/` racine a été **supprimée le 2026-08-09** (seuls 2 fichiers y étaient trackés — les 2 migrés).
+
 ---
 
 ## Migration Log (Résumé des Changements)
@@ -163,6 +167,7 @@ Les dossiers `src/core/*` (capacity, json-generation, network, sync, theme, voca
 | 2026-07-28 | Update | Barrel files frontend mis à jour | Repository Architect |
 | 2026-07-28 | Cleanup | Suppression du dossier backend/ racine (structure emboîtée) | Repository Architect |
 | 2026-07-28 | Document | Création du Rename Map et Repository Manifest | Repository Architect |
+| 2026-08-09 | Cleanup | Suppression de frontend/ racine (overlay de travail) — câblage B-6 migré vers src/safe-boot/frontend | Architecture Guardian |
 
 ---
 

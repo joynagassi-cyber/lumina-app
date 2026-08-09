@@ -18,6 +18,10 @@ import store from '@/store';
 import i18n from '@/i18n';
 import { useColorScheme } from 'react-native';
 
+// Phase B-6: runtime des fondations (manifest → engines → hot-swap → offline)
+import { LuminaRuntimeProvider } from '@shared/runtime';
+import mfeJcManifest from '@shared/manifest/manifests/mfe-jc.json';
+
 // React Query client — global API cache per ITS-V1 RTK Query integration
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,23 +44,25 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <ReduxProvider store={store}>
-          <QueryClientProvider client={queryClient}>
-            <I18nextProvider i18n={i18n}>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  navigationBarColor: colorScheme === 'dark' ? '#121212' : '#ffffff',
-                }}
-              >
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-              <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-            </I18nextProvider>
-          </QueryClientProvider>
-        </ReduxProvider>
+        <LuminaRuntimeProvider manifest={mfeJcManifest}>
+          <ReduxProvider store={store}>
+            <QueryClientProvider client={queryClient}>
+              <I18nextProvider i18n={i18n}>
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    navigationBarColor: colorScheme === 'dark' ? '#121212' : '#ffffff',
+                  }}
+                >
+                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+                <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+              </I18nextProvider>
+            </QueryClientProvider>
+          </ReduxProvider>
+        </LuminaRuntimeProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );
