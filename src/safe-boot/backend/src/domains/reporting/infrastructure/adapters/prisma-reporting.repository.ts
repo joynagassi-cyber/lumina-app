@@ -10,7 +10,8 @@ import type {
   ReportSnapshotRecord,
   ITransactionQueryPort,
   RawTransactionRecord,
-} from '../ports/reporting.port';
+  CategoryBreakdown,
+} from '../../ports/reporting.port';
 
 export class PrismaReportingRepository implements IReportSnapshotPort, ITransactionQueryPort {
   constructor(private readonly prisma: unknown) {}
@@ -18,7 +19,7 @@ export class PrismaReportingRepository implements IReportSnapshotPort, ITransact
   // ---- IReportSnapshotPort ----
 
   async create(record: Omit<ReportSnapshotRecord, 'id' | 'horodatage_genere' | 'date_generation'>): Promise<string> {
-    const data = { ...record };
+    const data = { ...record } as Record<string, unknown>;
     await this.prismaExecute('create', 'report_snapshots', data);
     return String(data.id ?? '');
   }
@@ -81,7 +82,7 @@ export class PrismaReportingRepository implements IReportSnapshotPort, ITransact
       total_revenu: Number(row.total_revenu),
       total_depense: Number(row.total_depense),
       resultat_net: Number(row.resultat_net),
-      details_par_categorie: this.parseJson(row.details_par_categorie, {}),
+      details_par_categorie: this.parseJson(row.details_par_categorie, {}) as Record<string, CategoryBreakdown>,
       nombre_transactions: Number(row.nombre_transactions),
       horodatage_genere: new Date(String(row.horodatage_genere)),
       signature_numerique: row.signature_numerique ? String(row.signature_numerique) : null,

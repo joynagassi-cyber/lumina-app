@@ -5,9 +5,11 @@
  */
 
 import { Module, DynamicModule, Provider } from '@nestjs/common';
-import { ReportingService } from '../application/reporting.service';
+import { ReportingService } from './application/reporting.service';
 import { PrismaReportingRepository } from './infrastructure/adapters/prisma-reporting.repository';
-import type { IReportSnapshotPort, ITransactionQueryPort } from '../ports/reporting.port';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { ReportsController } from './controllers/reports.controller';
+import type { IReportSnapshotPort, ITransactionQueryPort } from './ports/reporting.port';
 
 const SnapshotPortToken = 'IReportSnapshotPort' as const;
 const TransactionQueryPortToken = 'ITransactionQueryPort' as const;
@@ -19,12 +21,17 @@ export class ReportingModule {
   ): DynamicModule {
     return {
       module: ReportingModule,
+      controllers: [ReportsController],
       providers: [
-        { provide: SnapshotPortToken, useClass: PrismaReportingRepository },
+        {
+          provide: PrismaReportingRepository,
+          useFactory: (prisma: PrismaService) => new PrismaReportingRepository(prisma),
+          inject: [PrismaService],
+        },
+        { provide: SnapshotPortToken, useExisting: PrismaReportingRepository },
         {
           provide: TransactionQueryPortToken,
-          useFactory: (repo: PrismaReportingRepository): ITransactionQueryPort => repo,
-          inject: [SnapshotPortToken],
+          useExisting: PrismaReportingRepository,
         },
         {
           provide: ReportingService,

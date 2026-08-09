@@ -95,7 +95,17 @@ export class TermResolver {
   ): Promise<TermLookupResult | null> {
     // Implementation delegated through browser
     const terms = await this.browser.listTerms(namespaceKey, includeDeprecated);
-    return terms.find((t) => t.key === termKey) || null;
+    const found = terms.find((t) => t.key === termKey);
+    return found
+      ? {
+          id: found.id,
+          namespaceId: namespaceKey,
+          key: found.key,
+          labelFr: found.labelFr,
+          labelEn: found.labelEn,
+          isDeprecated: found.isDeprecated,
+        }
+      : null;
   }
 
   /** Lookup a value by namespace + term + value key, returning full data. */

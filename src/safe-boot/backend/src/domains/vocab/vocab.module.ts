@@ -11,11 +11,13 @@
  */
 
 import { Module, DynamicModule, Provider } from '@nestjs/common';
-import { VocabApplicationService } from '../application/vocab.service';
+import { VocabApplicationService } from './application/vocab.service';
+import { CategoriesController } from './vocab.controller';
 import { PrismaNamespaceRepository, PrismaTermRepository, PrismaTermValueRepository } from './infrastructure/adapters/prisma-vocab.repository';
-import { TermResolver, NamespaceBrowser, DeprecationManager } from '../domain/services';
-import type { INamespaceRepository, ITermRepository, ITermValueRepository } from '../ports/vocab.port';
-import type { DomainEventHandler } from '../../../../shared/events';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { TermResolver, NamespaceBrowser, DeprecationManager } from './domain/services';
+import type { INamespaceRepository, ITermRepository, ITermValueRepository } from './ports/vocab.port';
+import type { DomainEventHandler } from '../../shared/events';
 
 // ---- Injection tokens (interface-based per PA-NB-002) ----
 
@@ -35,6 +37,12 @@ export class VocabModule {
     domainEventHandler: DomainEventHandler,
   ): DynamicModule {
     const providers: Provider[] = [
+      // Prisma client (consommé par les repositories via @Inject('PRISMA_CLIENT'))
+      {
+        provide: 'PRISMA_CLIENT',
+        useExisting: PrismaService,
+      },
+
       // Repository adapters — implement port interfaces
       {
         provide: NAMESPACE_REPOSITORY_TOKEN,
@@ -110,6 +118,7 @@ export class VocabModule {
 
     return {
       module: VocabModule,
+      controllers: [CategoriesController],
       providers,
       exports: [VocabApplicationService],
     };

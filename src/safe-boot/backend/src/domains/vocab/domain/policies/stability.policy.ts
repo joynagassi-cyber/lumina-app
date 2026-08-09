@@ -33,10 +33,7 @@ export class StabilityPolicy {
     entityId?: string,
   ): void {
     if (existingKey !== proposedKey) {
-      const idPart = entityId ? ` (id: ${entityId})` : '';
-      throw new KeyChangeForbiddenError(
-        `${entityType}${idPart}`,
-      );
+      throw new KeyChangeForbiddenError(entityType, entityId ?? 'unknown');
     }
   }
 

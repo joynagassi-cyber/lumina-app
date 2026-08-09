@@ -8,7 +8,7 @@
  *   → TermAdded, TermValueDeprecated, LabelUpdated, TranslationResolved
  */
 
-import { DomainEvent } from '../../../../shared/events';
+import { DomainEvent } from '../../../shared/events';
 
 // ---- Term Added Events ----
 

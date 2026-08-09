@@ -7,7 +7,7 @@
  */
 
 import { BalanceTotals } from '../value-objects/balance-totals.vo';
-import { RawTransactionRecord, CategoryBreakdown } from '../ports/reporting.port';
+import { RawTransactionRecord, CategoryBreakdown } from '../../ports/reporting.port';
 
 export class BalanceCalculator {
   /**
@@ -19,7 +19,7 @@ export class BalanceCalculator {
 
     let totalIncome = 0;
     let totalExpense = 0;
-    const categoryBreakdown: Record<string, CategoryBreakdown> = {};
+    const categoryBreakdown: Record<string, { income: number; expense: number }> = {};
 
     for (const txn of approved) {
       if (txn.type_transaction === 'income') {

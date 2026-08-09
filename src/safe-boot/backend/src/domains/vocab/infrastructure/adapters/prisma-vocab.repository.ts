@@ -16,10 +16,10 @@ import type {
   ITermValueRepository,
   UpdateTermLabelInput,
   UpdateTermValueLabelInput,
-} from '../ports/vocab.port';
-import type { Namespace } from '../domain/entities/namespace.entity';
-import type { Term } from '../domain/entities/term.entity';
-import type { TermValue } from '../domain/entities/term-value.entity';
+} from '../../ports/vocab.port';
+import type { Namespace } from '../../domain/entities/namespace.entity';
+import type { Term } from '../../domain/entities/term.entity';
+import type { TermValue } from '../../domain/entities/term-value.entity';
 
 // ---- Internal persistence column shapes ----
 

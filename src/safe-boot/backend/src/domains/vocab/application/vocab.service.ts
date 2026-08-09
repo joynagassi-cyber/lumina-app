@@ -39,7 +39,7 @@ import {
   LabelUpdated,
   TranslationResolved,
 } from '../domain/events';
-import type { DomainEventHandler } from '../../../../shared/events';
+import type { DomainEventHandler } from '../../../shared/events';
 
 @Injectable()
 export class VocabApplicationService {

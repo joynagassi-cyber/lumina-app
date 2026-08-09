@@ -57,7 +57,7 @@ export class ReportingService {
     const balance = BalanceCalculator.calculate(transactions);
 
     // Build category breakdown
-    const categoryBreakdown: Record<string, CategoryBreakdown> = {};
+    const categoryBreakdown: Record<string, { income: number; expense: number }> = {};
     for (const txn of transactions) {
       if (!categoryBreakdown[txn.categorie_ref]) {
         categoryBreakdown[txn.categorie_ref] = { income: 0, expense: 0 };
@@ -77,6 +77,7 @@ export class ReportingService {
       scope: 'org',
       balance,
       categoryBreakdown,
+      transactionCount: balance.transactionCount,
     });
 
     // Persist the snapshot
@@ -155,6 +156,7 @@ export class ReportingService {
       periodStart: record.periode_debut,
       periodEnd: record.periode_fin,
       scope: record.portee,
+      transactionCount: record.nombre_transactions,
       balance: BalanceTotals.fromProps({
         totalIncome: record.total_revenu,
         totalExpense: record.total_depense,
