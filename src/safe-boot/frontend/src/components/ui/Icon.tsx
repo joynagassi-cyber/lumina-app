@@ -13,7 +13,7 @@ import { Pressable, Text, View, type PressableProps } from 'react-native';
 /*  Props                                                              */
 /* ------------------------------------------------------------------ */
 
-export interface IconProps extends Omit<PressableProps, 'onPress'> {
+export interface IconProps extends PressableProps {
   /** Name of the Lucide icon to render (e.g. 'home', 'settings'). */
   name: string;
   /** Visual size in dp. Default matches NativeWind `size-5` (20dp). */

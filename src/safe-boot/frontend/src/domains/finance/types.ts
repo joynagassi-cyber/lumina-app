@@ -230,3 +230,12 @@ export interface GenerateReportInput {
   exportFormat: ReportFormat;
   organizationId: string;
 }
+
+/**
+ * Generic pagination response.
+ */
+export interface PaginatedResponse<T> {
+  readonly items: ReadonlyArray<T>;
+  readonly totalCount: number;
+  readonly hasNextPage: boolean;
+}

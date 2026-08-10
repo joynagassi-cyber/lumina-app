@@ -140,7 +140,7 @@ export function SelectField({
                     item.value === value && 'bg-lumina-accent/20',
                   )}
                   style={{ minHeight: 44 }}
-                  accessibilityRole="option"
+                  accessibilityRole="menuitem"
                   accessibilityLabel={item.label}
                   accessibilityState={{ selected: item.value === value }}
                 >

@@ -43,9 +43,8 @@ export function Skeleton({
 
   return (
     <View
-      className={cn('animate-pulse bg-lumina-elevated', width, radiusClass, className)}
+      className={cn('animate-pulse bg-lumina-elevated', width as string, radiusClass as string, className)}
       style={[{ height }, radiusStyle]}
-      accessibilityHidden
     />
   );
 }

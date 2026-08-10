@@ -6,7 +6,7 @@
  * @traceability OFFLINE-FIRST-SPEC: .pending_operations table concept
  */
 
-import { Table, text, json, sqliteColumns } from '@nozbe/watermelondb';
+import { sqliteColumns } from '../watermelon-common';
 
 /**
  * SQLite schema for the pending_operations table.
@@ -15,7 +15,7 @@ import { Table, text, json, sqliteColumns } from '@nozbe/watermelondb';
  */
 export function getPendingOperationSchema(): {
   name: string;
-  columns: Array<{ name: string; type: string; isIndexed?: boolean }>;
+  columns: Array<{ name: string; type: string; isIndexed?: boolean; isNullable?: boolean }>;
 } {
   return {
     name: 'pending_operations',

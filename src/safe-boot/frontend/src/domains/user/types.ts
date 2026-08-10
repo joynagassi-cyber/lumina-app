@@ -185,3 +185,12 @@ export interface AuthDomainModel {
   readonly session: SessionContext | null;
   readonly isAuthenticated: boolean;
 }
+
+/**
+ * Generic pagination response.
+ */
+export interface PaginatedResponse<T> {
+  readonly items: ReadonlyArray<T>;
+  readonly totalCount: number;
+  readonly hasNextPage: boolean;
+}

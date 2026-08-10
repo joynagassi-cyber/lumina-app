@@ -105,7 +105,7 @@ export const organizationApi = createApi({
 
     updateOrganizationSettings: builder.mutation<
       OrganizationProfile,
-      Pick<string, never> & UpdateOrganizationSettingsInput
+      UpdateOrganizationSettingsInput
     >({
       query: ({ organizationId, ...settings }) => ({
         endpoint: `/${organizationId}/settings`,

@@ -43,7 +43,7 @@ const financeSlice = createSlice({
   initialState,
   reducers: {
     setTransactions(state, action: PayloadAction<ReadonlyArray<TransactionRecord>>) {
-      state.transactions = action.payload;
+      state.transactions = [...action.payload];
     },
     setSelectedTransactionId(state, action: PayloadAction<string | null>) {
       state.selectedTransactionId = action.payload;

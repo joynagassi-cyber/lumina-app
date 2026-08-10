@@ -6,7 +6,7 @@
  * @traceability POSTGRESQL-SCHEMA-PACK-v1.md: transaction_record physical table
  */
 
-import { Table, text, num, sqliteColumns } from '@nozbe/watermelondb';
+import { sqliteColumns } from '../watermelon-common';
 
 /**
  * SQLite schema for the transactions table.
@@ -17,7 +17,7 @@ import { Table, text, num, sqliteColumns } from '@nozbe/watermelondb';
  */
 export function getTransactionSchema(): {
   name: string;
-  columns: Array<{ name: string; type: string; isIndexed?: boolean }>;
+  columns: Array<{ name: string; type: string; isIndexed?: boolean; isNullable?: boolean }>;
 } {
   return {
     name: 'transactions',

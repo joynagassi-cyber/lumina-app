@@ -70,7 +70,6 @@ export function Modal({
             className,
           )}
           style={{ minHeight: 180 }}
-          accessibilityRole="dialog"
           accessibilityLabel={title}
         >
           {title && (

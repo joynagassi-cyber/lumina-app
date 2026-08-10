@@ -136,7 +136,7 @@ export function OrganizationPicker({
                     item.organizationId === currentOrgId && 'bg-lumina-accent/20',
                   )}
                   style={{ minHeight: 44 }}
-                  accessibilityRole="option"
+                  accessibilityRole="menuitem"
                   accessibilityLabel={`${item.organizationName}${item.role ? ` (${item.role})` : ''}`}
                   accessibilityState={{ selected: item.organizationId === currentOrgId }}
                 >

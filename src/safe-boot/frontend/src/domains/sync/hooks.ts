@@ -13,6 +13,7 @@ import {
   usePullDeltaMutation,
   useGetConnectionStateQuery,
   useGetSyncStatusTrackerQuery,
+  useGetConflictStrategiesQuery,
 } from './api';
 
 /* ------------------------------------------------------------------ */
@@ -26,17 +27,17 @@ export function useSync(orgId: string | null) {
   const { data: connState } = useGetConnectionStateQuery(undefined, { skip: false });
   const { data: tracker } = useGetSyncStatusTrackerQuery(orgId ?? '', { skip: !orgId });
 
-  const operations = (pendingOps?.items ?? []) as ReadonlyArray<PendingOperation>;
+  const operations = (pendingOps ?? []) as ReadonlyArray<PendingOperation>;
 
   return useMemo(
     () => ({
       pendingOperations: operations,
       connectionState: connState?.state ?? 'online',
       isOnline: connState?.state === 'online',
-      lastSyncTimestamp: tracker?.last_sync_timestamp ?? null,
-      totalPushed: tracker?.total_pushed ?? 0,
-      totalConfirmed: tracker?.total_confirmed ?? 0,
-      conflictsDetected: tracker?.conflicts_detected ?? 0,
+      lastSyncTimestamp: tracker?.lastSyncTimestamp ?? null,
+      totalPushed: tracker?.totalPushed ?? 0,
+      totalConfirmed: tracker?.totalConfirmed ?? 0,
+      conflictsDetected: tracker?.conflictsDetected ?? 0,
       pushPendingOps: async () =>
         pushOps({ organizationId: orgId!, operations: operations.map((op) => ({
           resourceType: op.resourceType,
@@ -45,7 +46,7 @@ export function useSync(orgId: string | null) {
           payload: JSON.parse(op.payload),
         })) }).unwrap(),
       pullRemoteChanges: async () =>
-        pullDelta({ organizationId: orgId!, sinceTimestamp: tracker?.last_sync_timestamp }).unwrap(),
+        pullDelta({ organizationId: orgId!, sinceTimestamp: tracker?.lastSyncTimestamp ?? null }).unwrap(),
       doFullSync: async () => {
         await pushOps({
           organizationId: orgId!,
@@ -56,10 +57,10 @@ export function useSync(orgId: string | null) {
             payload: JSON.parse(op.payload),
           })),
         }).unwrap();
-        return pullDelta({ organizationId: orgId!, sinceTimestamp: tracker?.last_sync_timestamp }).unwrap();
+        return pullDelta({ organizationId: orgId!, sinceTimestamp: tracker?.lastSyncTimestamp ?? null }).unwrap();
       },
     }),
-    [operations, connState?.state, tracker?.last_sync_timestamp, tracker?.total_pushed, tracker?.total_confirmed, tracker?.conflicts_detected, orgId, pushOps, pullDelta],
+    [operations, connState?.state, tracker?.lastSyncTimestamp, tracker?.totalPushed, tracker?.totalConfirmed, tracker?.conflictsDetected, orgId, pushOps, pullDelta],
   );
 }
 
@@ -86,7 +87,7 @@ export function useConflictStrategies(): ConflictStrategyMap | null {
  */
 export function usePendingCount(orgId: string | null): number {
   const { data: pendingOps } = useGetPendingOperationsQuery(orgId ?? '', { skip: !orgId });
-  const ops = (pendingOps?.items ?? []) as ReadonlyArray<PendingOperation>;
+  const ops = (pendingOps ?? []) as ReadonlyArray<PendingOperation>;
   return useMemo(
     () => ops.filter((op) => op.syncStatus === 'pending').length,
     [ops],
