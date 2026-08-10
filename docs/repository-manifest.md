@@ -152,6 +152,21 @@ Les dossiers `src/core/*` (capacity, json-generation, network, sync, theme, voca
 
 ---
 
+## Clarification : source frontend des domaines (reporting, configuration, lifecycle, …) — RÉSOLU (2026-08-10)
+
+**Décision finale :** la source des domaines frontend (reporting, configuration, lifecycle, auth, event, form, member, vocab, workflow + `core/query-builder` + infra jest) était **untracked** (74 fichiers). Elle est **commitée en l'état vérifié** le 2026-08-10 : tsc 0 erreur, suite jest frontend 27/27.
+
+**Pourquoi commiter (plutôt que laisser hors git) :**
+- Le manifest et l'audit déclarent déjà ce frontend comme existant (« 146 fichiers frontend », « Reporting Frontend ✅ Complet ») — le laisser hors git maintenait un drift doc↔code permanent (détectable par l'architecture-guardian).
+- Code **vérifié** : tsc 0 erreur + 27/27 tests (dont les tests reporting, priorité P0 de l'audit).
+- Des fichiers untracked sont à un `git clean` de la perte ; aucun clone ne les contiendrait.
+
+**Nuance documentée :** ces domaines sont implémentés et vérifiés mais **pas encore câblés à l'entrée applicative** — `store/index.ts` et `app/_layout.tsx` ne branchent que organization/user/finance/sync (trackés). Le câblage presentation (routes/écrans) reste du travail ultérieur, hors de cette décision.
+
+**Comptes après commit :** 77 trackés + 74 untracked commités (75 − `Icon.tsx.bak` supprimé, fichier de sauvegarde jetable) → **151 fichiers frontend trackés**.
+
+---
+
 ## Migration Log (Résumé des Changements)
 
 | Date | Type | Description | Auteur |
@@ -168,6 +183,7 @@ Les dossiers `src/core/*` (capacity, json-generation, network, sync, theme, voca
 | 2026-07-28 | Cleanup | Suppression du dossier backend/ racine (structure emboîtée) | Repository Architect |
 | 2026-07-28 | Document | Création du Rename Map et Repository Manifest | Repository Architect |
 | 2026-08-09 | Cleanup | Suppression de frontend/ racine (overlay de travail) — câblage B-6 migré vers src/safe-boot/frontend | Architecture Guardian |
+| 2026-08-10 | Commit | Source frontend des domaines (74 fichiers untracked : reporting, configuration, lifecycle, auth, event, form, member, vocab, workflow + core/query-builder + infra jest) commitée en l'état vérifié (tsc 0, jest 27/27) | Architecture Guardian |
 
 ---
 
