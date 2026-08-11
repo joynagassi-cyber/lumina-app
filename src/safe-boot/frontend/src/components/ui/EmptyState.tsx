@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { cn } from '@/utils';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -43,7 +43,6 @@ export function EmptyState({
   return (
     <View
       className={cn('flex-1 items-center justify-center p-6 gap-4', className)}
-      accessibilityRole="group"
       accessibilityLabel={`Empty state: ${title}`}
     >
       {icon && (

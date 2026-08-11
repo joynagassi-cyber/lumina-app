@@ -1,1 +1,1 @@
-export { SyncService } from './index';
+export { SyncService } from './sync';

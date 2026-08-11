@@ -38,7 +38,7 @@ export function useOrganization(orgId: string | null) {
       isLoading: loadingProfile || loadingUnits,
       error: profileError,
       updateSettings: (settings: UpdateOrganizationSettingsInput) =>
-        updateSettings({ organizationId: orgId!, ...settings }),
+        updateSettings({ ...settings, organizationId: orgId! }),
       createUnit: (name: string) =>
         createUnit({ name, organizationId: orgId! }),
       suspend: () =>

@@ -6,7 +6,7 @@
  * @traceability POSTGRESQL-SCHEMA-PACK-v1.md: users physical table
  */
 
-import { Table, text, sqliteColumns } from '@nozbe/watermelondb';
+import { sqliteColumns } from '../watermelon-common';
 
 /**
  * SQLite schema for the users table.
@@ -16,7 +16,7 @@ import { Table, text, sqliteColumns } from '@nozbe/watermelondb';
  */
 export function getUserSchema(): {
   name: string;
-  columns: Array<{ name: string; type: string; isIndexed?: boolean }>;
+  columns: Array<{ name: string; type: string; isIndexed?: boolean; isNullable?: boolean }>;
 } {
   return {
     name: 'users',

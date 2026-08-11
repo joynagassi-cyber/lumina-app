@@ -7,8 +7,6 @@
  * @traceability ASS-001: Application Services for org operations
  */
 
-import type { ConfigurationAggregate } from '../finance/types';
-
 /* ------------------------------------------------------------------ */
 /*  Value Objects                                                      */
 /* ------------------------------------------------------------------ */
@@ -155,6 +153,7 @@ export interface CreateOrganizationInput {
  * Maps to ASS-001 UpdateOrgSettings operation.
  */
 export interface UpdateOrganizationSettingsInput {
+  organizationId: string;
   currency?: string;
   fiscalYearStart?: number;
   timezone?: string;

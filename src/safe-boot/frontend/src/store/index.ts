@@ -5,14 +5,14 @@
  */
 
 import { configureStore } from '@reduxjs/toolkit';
-import { organizationApi } from './domains/organization/api';
-import { userApi } from './domains/user/api';
-import { financeApi } from './domains/finance/api';
-import { syncApi } from './domains/sync/api';
-import orgReducer from './domains/organization/store';
-import authReducer from './domains/user/store';
-import financeReducer from './domains/finance/store';
-import syncReducer from './domains/sync/store';
+import { organizationApi } from '../domains/organization/api';
+import { userApi } from '../domains/user/api';
+import { financeApi } from '../domains/finance/api';
+import { syncApi } from '../domains/sync/api';
+import orgReducer from '../domains/organization/store';
+import authReducer from '../domains/user/store';
+import financeReducer from '../domains/finance/store';
+import syncReducer from '../domains/sync/store';
 
 export const store = configureStore({
   reducer: {

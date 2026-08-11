@@ -24,7 +24,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api/v
 function authFetch<T>(
   endpoint: string,
   options?: { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown },
-): Promise<{ data: T }> {
+): Promise<{ data: T } | { error: string }> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
   // Auth tokens would be attached here via a middleware or interceptor pattern.
@@ -37,7 +37,7 @@ function authFetch<T>(
   }).then(async (response) => {
     if (!response.ok) {
       return {
-        error: `Auth API error: ${response.status} ${response.statusText}` as never,
+        error: `Auth API error: ${response.status} ${response.statusText}`,
       };
     }
     return { data: (await response.json()) as T };

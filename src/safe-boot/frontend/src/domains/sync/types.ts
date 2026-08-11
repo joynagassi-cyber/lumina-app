@@ -66,6 +66,9 @@ export const DEFAULT_CONFLICT_STRATEGIES: ConflictStrategyMap = {
  */
 export const PUSH_BATCH_SIZE = 50 as const;
 
+/** Type of the push batch size constant. */
+export type PushBatchSize = typeof PUSH_BATCH_SIZE;
+
 /**
  * Maximum retry attempts per BR-SYNC-006 (max 5).
  */

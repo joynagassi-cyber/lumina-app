@@ -59,7 +59,7 @@ export function Badge({
         styles.bg,
         className,
       )}
-      accessibilityRole="status"
+      accessibilityRole="summary"
       accessibilityLabel={label}
       accessible
     >

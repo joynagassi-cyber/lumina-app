@@ -45,7 +45,7 @@ const orgSlice = createSlice({
       state.error = null;
     },
     setOrgUnits(state, action: PayloadAction<ReadonlyArray<OrgUnit>>) {
-      state.orgUnits = action.payload;
+      state.orgUnits = [...action.payload];
     },
     setSelectedOrgId(state, action: PayloadAction<string>) {
       state.selectedOrgId = action.payload;
@@ -73,18 +73,6 @@ const orgSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addMatcher(
-        // Any RTK Query pending for org endpoints
-        (action): action is { meta: { arg: { endpointName: string } } } =>
-          typeof action === 'object' &&
-          action !== null &&
-          'meta' in action &&
-          action.meta &&
-          'endpointName' in action.meta &&
-          typeof action.meta.endpointName === 'string' &&
-          action.meta.endpointName.startsWith('organizationApi.') ||
-          false,
-      )
       .addMatcher(
         (action) => action.type.endsWith('/pending'),
         (state) => {

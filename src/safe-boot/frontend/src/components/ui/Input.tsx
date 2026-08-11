@@ -32,6 +32,8 @@ export interface InputProps extends Omit<RNTextInputProps, 'style' | 'placeholde
   leftIcon?: React.FC<{ size?: number; color?: string }>;
   /** Whether to mask the input (password fields). */
   secureTextEntry?: boolean;
+  /** Whether the input is disabled. */
+  disabled?: boolean;
   /** Keyboard type selector. */
   keyboardType?: RNTextInputProps['keyboardType'];
   /** Optional className for additional NativeWind overrides. */
@@ -120,8 +122,6 @@ export function Input({
           )}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          accessibilityRole="textinput"
-          accessibilityErrorMessage={error}
           {...rest}
         />
         {RightIcon && (

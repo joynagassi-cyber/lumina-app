@@ -64,6 +64,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Generate Prisma client
+        # Le postinstall de @prisma/client génère un client par défaut (schéma
+        # vide) ; sans generate, le typecheck échoue sur les types Prisma
+        # spécifiques au schéma (EventCreateInput, InvitationCreateInput, ...).
+        run: bunx prisma generate --schema src/safe-boot/backend/prisma/schema.prisma
+
       - name: TypeScript type-check
         run: bun run typecheck
 

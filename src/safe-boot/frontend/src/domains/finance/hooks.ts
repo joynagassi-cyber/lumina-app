@@ -8,6 +8,8 @@
 import { useMemo } from 'react';
 import type {
   CreateTransactionInput,
+  ReportFormat,
+  ScopeType,
   TransactionRecord,
   TransitionTransactionInput,
 } from './types';
@@ -18,6 +20,7 @@ import {
   useCompensateTransactionMutation,
   useGenerateFinancialReportMutation,
   useGetBalanceSummaryQuery,
+  useGetTransactionsByStateQuery,
 } from './api';
 
 /* ------------------------------------------------------------------ */
@@ -56,6 +59,8 @@ export function useFinance(orgId: string | null) {
         generateReport({
           ...params,
           periodType: 'custom' as const,
+          scopeType: params.scopeType as ScopeType,
+          exportFormat: params.exportFormat as ReportFormat,
         }).unwrap(),
       totalIncome: balance?.totalIncome ?? 0,
       totalExpense: balance?.totalExpense ?? 0,
