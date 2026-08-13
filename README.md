@@ -71,6 +71,24 @@ Tous les documents canoniques se trouvent dans `docs/00-canonical/`:
 - [flexible-report-engine-completion.md](docs/00-canonical/architecture/flexible-report-engine-completion.md) — Résumé complet
 - [flexible-report-engine-sprint2-completion.md](docs/00-canonical/architecture/flexible-report-engine-sprint2-completion.md) — Rapport finale Sprint 2
 
+### Publication vers le GitHub Wiki
+
+Le contenu de `docs/` est publié sur le [Wiki du dépôt](https://github.com/joynagassi-cyber/lumina-app/wiki). Le wiki étant plat, `scripts/export-wiki.mjs` aplatit les chemins (`00-architecture/Documentation-Discipline.md` → page `00-architecture-Documentation-Discipline`), réécrit les liens Markdown relatifs et les `[[wiki-links]]`, copie `docs/INDEX.md` vers `Home.md` et génère un `_Sidebar.md` reconstruisant l'arborescence des dossiers numérotés.
+
+**Prérequis (une seule fois):** activer le wiki dans `Settings → Features → Wikis`, puis créer une première page depuis l'interface GitHub. Sans cette initialisation, le dépôt `lumina-app.wiki.git` n'existe pas et l'export échoue.
+
+**Export manuel:**
+
+```bash
+# Prévisualiser la conversion sans rien pousser
+bun run export-wiki -- --dry-run --out .wiki-preview
+
+# Publier (token avec droit d'écriture sur le dépôt)
+GITHUB_TOKEN=<token> bun run export-wiki
+```
+
+**Export automatique:** le workflow [`.github/workflows/publish-wiki.yml`](.github/workflows/publish-wiki.yml) se déclenche à chaque `push` sur `main` touchant `docs/**` (et manuellement via `workflow_dispatch`). Il exécute le script avec `secrets.GITHUB_TOKEN` et la permission `contents: write`. Si les permissions par défaut ne suffisent pas pour pousser sur le wiki, créer un PAT avec le scope `repo` et l'enregistrer comme secret `WIKI_TOKEN` — le workflow l'utilise en priorité.
+
 ---
 
 ## 💻 Structure du Code

@@ -1,0 +1,46 @@
+# ============================================================================
+# Publish Wiki -- mirrors docs/ to the repository GitHub Wiki
+#
+# The wiki lives in a separate git repository (<repo>.wiki.git) with a flat
+# page namespace, so scripts/export-wiki.mjs flattens docs/ paths, rewrites
+# internal links and generates Home.md + _Sidebar.md before pushing.
+#
+# Prerequisite: the wiki must be enabled (Settings -> Features -> Wikis) and
+# initialised with a first page, otherwise the wiki repository does not exist.
+#
+# WIKI_TOKEN (a PAT with `repo` scope) is used when set; otherwise the default
+# GITHUB_TOKEN is used, which is sufficient on repositories where the default
+# permissions allow pushing to the wiki.
+# ============================================================================
+
+name: Publish Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Export docs/ to the wiki
+        env:
+          GITHUB_TOKEN: ${{ secrets.WIKI_TOKEN || secrets.GITHUB_TOKEN }}
+        run: bun run export-wiki

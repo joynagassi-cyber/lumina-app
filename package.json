@@ -16,7 +16,8 @@
     "typecheck": "turbo run typecheck",
     "architecture:validate": "bun scripts/architecture-validate.mjs",
     "traceability:verify": "bun scripts/traceability-verify.mjs",
-    "detect-blockers": "bun scripts/detect-blockers.mjs"
+    "detect-blockers": "bun scripts/detect-blockers.mjs",
+    "export-wiki": "node scripts/export-wiki.mjs"
   },
   "packageManager": "bun@1.1.0",
   "engines": {
